@@ -86,17 +86,23 @@ class _MainPageState extends State<MainPage> {
                 Row(
                   children: [
                     Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
+                      width: 48, 
+                      height: 48, 
+                      decoration: const BoxDecoration( // Changed to const
                         color: Colors.white24,
-                        borderRadius: BorderRadius.circular(6),
+                        shape: BoxShape.circle, // Changed to circular shape
                       ),
-                      child: const Icon(Icons.layers, color: Colors.white, size: 20),
+                      child: Image.asset(
+                        'lib/core/theme/img/logo.png',
+                        fit: BoxFit.contain, 
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.error, color: Colors.red, size: 24); 
+                        },
+                      ),
                     ),
                     const SizedBox(width: 10),
                     const Text(
-                      'Template Design',
+                      'Medic Assist',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -381,7 +387,7 @@ class _MainPageState extends State<MainPage> {
                                   _isPatientsCollapsed = !_isPatientsCollapsed;
                                 });
                               },
-                              tooltip: _isPatientsCollapsed ? 'Expand Patients' : 'Collapse Patients',
+                              tooltip: (_isPatientsCollapsed ? 'Expand Patients' : 'Collapse Patients'),
                             ),
                           ],
                         ),
@@ -452,6 +458,7 @@ class _MainPageState extends State<MainPage> {
                                               _selectedPatientForHistory = _patients[index];
                                             });
                                           }
+                                          // Handle tap
                                         },
                                       );
                                     },

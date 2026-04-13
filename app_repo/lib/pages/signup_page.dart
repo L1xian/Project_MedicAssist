@@ -5,9 +5,10 @@ import 'package:blog_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:blog_app/pages/login_page.dart';
 import 'package:blog_app/features/auth/presentation/widgets/auth_field.dart';
 import 'package:blog_app/features/auth/presentation/widgets/auth_gradient_button.dart';
-import 'package:blog_app/features/blog/presentation/pages/blog_page.dart';
+import 'package:blog_app/pages/posts_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:blog_app/core/widgets/custom_app_bar.dart'; // Import CustomAppBar
 
 class SignUpPage extends StatefulWidget {
   static route() => MaterialPageRoute(
@@ -37,7 +38,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: const CustomAppBar(title: 'Sign Up', hideAssistantIcon: false), // Replaced AppBar with CustomAppBar
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: BlocConsumer<AuthBloc, AuthState>(
@@ -47,7 +48,7 @@ class _SignUpPageState extends State<SignUpPage> {
             } else if (state is AuthSuccess) {
               Navigator.pushAndRemoveUntil(
                 context,
-                BlogPage.route(),
+                PostsPage.route(),
                 (route) => false,
               );
             }

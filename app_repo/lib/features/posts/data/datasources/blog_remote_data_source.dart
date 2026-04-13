@@ -1,62 +1,62 @@
 import 'dart:io';
 import 'package:blog_app/core/constants/errors.dart';
 import 'package:blog_app/core/utils/local_db_service.dart';
-import 'package:blog_app/features/blog/domain/blog.dart';
+import 'package:blog_app/features/posts/domain/post.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 
-abstract interface class BlogRemoteDataSource {
-  Future<Blog> uploadBlog(Blog blog);
-  Future<String> uploadBlogImage({required File image, required Blog blog});
-  Future<List<Blog>> getAllBlogs();
+abstract interface class PostRemoteDataSource {
+  Future<Post> uploadPost(Post post);
+  Future<String> uploadPostImage({required File image, required Post post});
+  Future<List<Post>> getAllPosts();
 }
 
-class BlogRemoteDataSourceImpl implements BlogRemoteDataSource {
+class PostRemoteDataSourceImpl implements PostRemoteDataSource {
   final SupabaseClient supabaseClient;
   final LocalDbService? localDb;
 
-  BlogRemoteDataSourceImpl(this.supabaseClient, {this.localDb});
+  PostRemoteDataSourceImpl(this.supabaseClient, {this.localDb});
 
   @override
-  Future<Blog> uploadBlog(Blog blog) async {
+  Future<Post> uploadPost(Post post) async {
     try {
       if (kDebugMode && localDb != null) {
         final res = await localDb!.query(
           'INSERT INTO blogs (id, poster_id, title, content, image_url, topics, updated_at) '
           'VALUES (@id, @poster_id, @title, @content, @image_url, @topics, @updated_at) RETURNING *',
           parameters: {
-            'id': blog.id,
-            'poster_id': blog.posterId,
-            'title': blog.title,
-            'content': blog.content,
-            'image_url': blog.imageUrl,
-            'topics': blog.topics,
-            'updated_at': blog.updatedAt.toIso8601String(),
+            'id': post.id,
+            'poster_id': post.posterId,
+            'title': post.title,
+            'content': post.content,
+            'image_url': post.imageUrl,
+            'topics': post.topics,
+            'updated_at': post.updatedAt.toIso8601String(),
           },
         );
-        return Blog.fromJson(res.first.toColumnMap());
+        return Post.fromJson(res.first.toColumnMap());
       }
 
-      final blogData = await supabaseClient.from('blogs').insert(blog.toJson()).select();
-      return Blog.fromJson(blogData.first);
+      final blogData = await supabaseClient.from('blogs').insert(post.toJson()).select();
+      return Post.fromJson(blogData.first);
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   @override
-  Future<String> uploadBlogImage({required File image, required Blog blog}) async {
+  Future<String> uploadPostImage({required File image, required Post post}) async {
     try {
       // Storage still uses Supabase (unless you want to handle local files)
-      await supabaseClient.storage.from('blog_images').upload(blog.id, image);
-      return supabaseClient.storage.from('blog_images').getPublicUrl(blog.id);
+      await supabaseClient.storage.from('blog_images').upload(post.id, image);
+      return supabaseClient.storage.from('blog_images').getPublicUrl(post.id);
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   @override
-  Future<List<Blog>> getAllBlogs() async {
+  Future<List<Post>> getAllPosts() async {
     try {
       if (kDebugMode && localDb != null) {
         final res = await localDb!.query(
@@ -65,14 +65,14 @@ class BlogRemoteDataSourceImpl implements BlogRemoteDataSource {
         );
         return res.map((row) {
           final map = row.toColumnMap();
-          return Blog.fromJson(map).copyWith(posterName: map['poster_name']);
+          return Post.fromJson(map).copyWith(posterName: map['poster_name']);
         }).toList();
       }
 
       final blogs = await supabaseClient.from('blogs').select('*, profiles (name)');
       return blogs
           .map(
-            (blog) => Blog.fromJson(blog).copyWith(
+            (blog) => Post.fromJson(blog).copyWith(
               posterName: blog['profiles']['name'],
             ),
           )

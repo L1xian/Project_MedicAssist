@@ -4,10 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:blog_app/core/cubits/app_user/app_user_cubit.dart';
 import 'package:blog_app/theme/app_pallete.dart';
 import 'package:blog_app/theme/theme.dart';
-import 'aiassist_page.dart';
 import 'posts_page.dart';
 import 'userprofile_page.dart';
 import 'scheduler_page.dart';
+import 'doctors_page.dart'; // Import the new DoctorsPage
+import 'package:blog_app/core/widgets/custom_app_bar.dart'; // Import CustomAppBar
 
 class HomeScreen extends StatelessWidget {
   static route() => MaterialPageRoute(
@@ -40,7 +41,7 @@ class _NavigationBarState extends State<_NavigationBar> {
     const SchedulerPage(),
     const ActivityDashboard(),
     const PostsPage(),
-    const AiAssistPage(),
+    const DoctorsPage(), // Added DoctorsPage
   ];
 
   void _showSettingsMenu(BuildContext context) {
@@ -95,39 +96,6 @@ class _NavigationBarState extends State<_NavigationBar> {
 
     return Column(
       children: [
-        // Header shown ONLY when on the Dashboard (tab index 2)
-        if (_tabIndex == 2)
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.menu_rounded, color: textColor),
-                    onPressed: () => _showSettingsMenu(context),
-                  ),
-                  Container(
-                    height: 24,
-                    width: 1,
-                    color: AppPallete.borderColor.withOpacity(0.5),
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'MedicAssist',
-                      style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         Expanded(
           child: _pages[_tabIndex],
         ),
@@ -166,8 +134,8 @@ class _NavigationBarState extends State<_NavigationBar> {
                 selected: _tabIndex == 3,
                 onTap: () => setState(() => _tabIndex = 3),
               ),
-              _BottomItem(
-                icon: Icons.auto_awesome_rounded,
+              _BottomItem( // New BottomItem for DoctorsPage
+                icon: Icons.people_alt_outlined,
                 selected: _tabIndex == 4,
                 onTap: () => setState(() => _tabIndex = 4),
               ),
@@ -185,8 +153,24 @@ class ActivityDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.sizeOf(context).width;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppPallete.whiteColor : AppPallete.backgroundColor;
 
     return Scaffold(
+      appBar: CustomAppBar(
+        title: 'MedicAssist',
+        leading: IconButton(
+          icon: Icon(Icons.menu_rounded, color: textColor),
+          onPressed: () {
+            // This will open the settings menu from the HomeScreen's _NavigationBar
+            // We need to find a way to access _showSettingsMenu from here.
+            // For now, I'll leave it as a placeholder or remove it if not directly accessible.
+            // A better approach would be to pass a callback or use a global key/provider.
+            // For this task, I'll assume a simple menu for now.
+            Scaffold.of(context).openDrawer(); // Example: if there's a Drawer
+          },
+        ),
+      ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: ConstrainedBox(

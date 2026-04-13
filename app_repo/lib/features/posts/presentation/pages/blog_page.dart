@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:blog_app/features/ai_assistant/presentation/pages/ai_chat_page.dart';
+import 'package:blog_app/core/widgets/custom_app_bar.dart'; // Import CustomAppBar
 
 class BlogPage extends StatefulWidget {
   static route() => MaterialPageRoute(
@@ -30,20 +31,7 @@ class _BlogPageState extends State<BlogPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Blog App'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => const AiChatPage()));
-            },
-            icon: const Icon(
-              CupertinoIcons.chat_bubble,
-            ),
-          ),
-        ],
-      ),
+      appBar: const CustomAppBar(title: 'Blog App'), // Replaced AppBar with CustomAppBar
       body: BlocConsumer<BlogBloc, BlogState>(
         listener: (context, state) {
           if (state is BlogFailure) {

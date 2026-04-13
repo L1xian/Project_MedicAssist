@@ -6,18 +6,23 @@ import 'package:blog_app/core/utils/user_functions/edit_user_email.dart';
 import 'package:blog_app/core/utils/user_functions/edit_user_name.dart';
 import 'package:blog_app/core/utils/user_functions/edit_user_phone_number.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // Corrected import statement
+import 'package:blog_app/core/widgets/custom_app_bar.dart'; // Import CustomAppBar
 
 class TimelineEvent {
   final String date;
   final String title;
-  final String description;
+  final String doctorName; // New field
+  final String doctorNotes; // New field
+  final List<String> prescriptions; // New field
   final IconData icon;
 
   TimelineEvent({
     required this.date,
     required this.title,
-    required this.description,
+    required this.doctorName,
+    required this.doctorNotes,
+    required this.prescriptions,
     required this.icon,
   });
 }
@@ -36,25 +41,33 @@ class _ProfilePageState extends State<ProfilePage> {
     TimelineEvent(
       date: 'Oct 15, 2023',
       title: 'General Checkup',
-      description: 'Annual health assessment. All vitals normal.',
+      doctorName: 'Dr. Emily White',
+      doctorNotes: 'Patient presented with mild fatigue. Vitals are stable. Advised for regular exercise and balanced diet. No immediate concerns.',
+      prescriptions: ['Multivitamin (daily)', 'Vitamin D (weekly)'],
       icon: Icons.check_circle_outline,
     ),
     TimelineEvent(
       date: 'Aug 10, 2023',
       title: 'Blood Test',
-      description: 'Routine blood panel. Cholesterol levels slightly elevated.',
+      doctorName: 'Dr. John Doe',
+      doctorNotes: 'Routine blood panel. Cholesterol levels slightly elevated. Recommended dietary adjustments and follow-up in 3 months.',
+      prescriptions: ['Atorvastatin 10mg (daily) - if diet ineffective'],
       icon: Icons.science_outlined,
     ),
     TimelineEvent(
       date: 'Jun 22, 2023',
       title: 'Dental Cleaning',
-      description: 'Bi-annual scaling and polishing.',
+      doctorName: 'Dr. Sarah Lee',
+      doctorNotes: 'Bi-annual scaling and polishing completed. No cavities found. Advised on proper flossing techniques.',
+      prescriptions: [],
       icon: Icons.health_and_safety_outlined,
     ),
     TimelineEvent(
       date: 'Mar 05, 2023',
       title: 'Flu Vaccination',
-      description: 'Annual influenza vaccine administered.',
+      doctorName: 'Dr. Michael Brown',
+      doctorNotes: 'Annual influenza vaccine administered. Patient tolerated well. Advised to monitor for side effects.',
+      prescriptions: [],
       icon: Icons.vaccines_outlined,
     ),
   ];
@@ -85,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
         onSave: (newEmail) {
           final updatedUser = User(
             id: userState.user.id,
-            email: newEmail,
+            email: userState.user.email,
             name: userState.user.name,
             phoneNumber: userState.user.phoneNumber,
           );
@@ -113,6 +126,225 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _editUserPassword() {
+    final formKey = GlobalKey<FormState>();
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmNewPasswordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final textColor = isDark ? AppPallete.whiteColor : AppPallete.backgroundColor;
+        final dialogBackgroundColor = isDark ? AppPallete.backgroundColor : Colors.white;
+
+        return AlertDialog(
+          backgroundColor: dialogBackgroundColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: Text('Change Password', style: TextStyle(color: textColor)),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: currentPasswordController,
+                    obscureText: true,
+                    style: TextStyle(color: textColor),
+                    decoration: InputDecoration(
+                      labelText: 'Current Password',
+                      labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppPallete.borderColor.withOpacity(0.5)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppPallete.primaryColor),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your current password';
+                      }
+                      // Mock validation: Replace with actual authentication check
+                      if (value != 'password123') { // Replace with actual current password check
+                        return 'Incorrect current password';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: newPasswordController,
+                    obscureText: true,
+                    style: TextStyle(color: textColor),
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppPallete.borderColor.withOpacity(0.5)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppPallete.primaryColor),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a new password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: confirmNewPasswordController,
+                    obscureText: true,
+                    style: TextStyle(color: textColor),
+                    decoration: InputDecoration(
+                      labelText: 'Confirm New Password',
+                      labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: AppPallete.borderColor.withOpacity(0.5)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppPallete.primaryColor),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your new password';
+                      }
+                      if (value != newPasswordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel', style: TextStyle(color: AppPallete.greyColor)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  // Mock password update logic
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Password updated successfully!')),
+                  );
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppPallete.primaryColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text('Save', style: TextStyle(color: AppPallete.whiteColor)),
+            ),
+          ],
+        );
+      },
+    ).then((_) { // Dispose controllers after dialog is dismissed
+      currentPasswordController.dispose();
+      newPasswordController.dispose();
+      confirmNewPasswordController.dispose();
+    });
+  }
+
+  Future<bool> _verifyPasswordForTimeline() async {
+    final formKey = GlobalKey<FormState>();
+    final passwordController = TextEditingController();
+
+    bool? verified = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final textColor = isDark ? AppPallete.whiteColor : AppPallete.backgroundColor;
+        final dialogBackgroundColor = isDark ? AppPallete.backgroundColor : Colors.white;
+
+        return AlertDialog(
+          backgroundColor: dialogBackgroundColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: Text('Verify Password', style: TextStyle(color: textColor)),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: passwordController,
+              obscureText: true,
+              style: TextStyle(color: textColor),
+              decoration: InputDecoration(
+                labelText: 'Enter your password to view Timeline',
+                labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: AppPallete.borderColor.withOpacity(0.5)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppPallete.primaryColor),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your password';
+                }
+                // Mock validation: Replace with actual authentication check
+                if (value != 'password123') { // Replace with actual current password check
+                  return 'Incorrect password';
+                }
+                return null;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false); // Return false on cancel
+              },
+              child: Text('Cancel', style: TextStyle(color: AppPallete.greyColor)),
+            ),
+            TextButton( // Added Skip button
+              onPressed: () {
+                Navigator.pop(context, true); // Return true to skip verification
+              },
+              child: Text('Skip', style: TextStyle(color: AppPallete.primaryColor)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.pop(context, true); // Return true on success
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppPallete.primaryColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text('Verify', style: TextStyle(color: AppPallete.whiteColor)),
+            ),
+          ],
+        );
+      },
+    );
+    passwordController.dispose(); // Dispose controller after dialog is dismissed
+    return verified ?? false; // Return false if dialog is dismissed
+  }
+
   @override
   Widget build(BuildContext context) {
     final userState = context.watch<AppUserCubit>().state;
@@ -135,132 +367,132 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       backgroundColor: backgroundColor,
+      appBar: const CustomAppBar(title: 'Profile'), // Added CustomAppBar
       body: SafeArea(
         bottom: false,
-        child: Stack(
-          children: [
-            // Background radial gradient glow
-            Positioned.fill(
-              child: DecoratedBox(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 28),
+          child: Column(
+            children: [
+              // Add a SizedBox to push content down below the AppBar
+              const SizedBox(height: kToolbarHeight + 10), // kToolbarHeight is AppBar's default height
+              Container(
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const Alignment(-0.5, -1.0),
-                    radius: 1.2,
-                    colors: [
-                      AppPallete.primaryColor.withOpacity(isDark ? .28 : .1),
-                      Colors.transparent,
-                    ],
-                  ),
+                  color: isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.9),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                 ),
-              ),
-            ),
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 28),
-              child: Column(
-                children: [
-                  _TopHeader(violet: AppPallete.primaryColor, violet2: AppPallete.secondaryColor),
-                  Transform.translate(
-                    offset: const Offset(0, -26),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.9),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                      ),
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // User info row
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // User info row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      userName,
-                                      style: TextStyle(
-                                        color: textColor,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w800,
-                                        height: 1.15,
-                                        letterSpacing: -0.2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      userId,
-                                      style: TextStyle(
-                                        color: textColor.withOpacity(0.7),
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
+                              Text(
+                                userName,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.15,
+                                  letterSpacing: -0.2,
                                 ),
                               ),
-                              const SizedBox(width: 14),
-                              // Avatar
-                              const _Avatar(),
+                              const SizedBox(height: 6),
+                              Text(
+                                userId,
+                                style: TextStyle(
+                                  color: textColor.withOpacity(0.7),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ],
                           ),
-                          const SizedBox(height: 18),
+                        ),
+                        const SizedBox(width: 14),
+                        // Avatar
+                        const _Avatar(),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
 
-                          // Content Panel
-                          _GlassPanel(
-                            child: Column(
-                              children: [
-                                _SegmentedTabs(
-                                  value: tab,
-                                  onChanged: (v) => setState(() => tab = v),
-                                ),
-                                const SizedBox(height: 20),
-                                tab == 0
-                                    ? Column(
-                                        children: [
-                                          _UserInfoRow(
-                                            title: 'User Name',
-                                            subtitle: userName,
-                                            onEdit: _editUserName,
-                                          ),
-                                          const SizedBox(height: 10),
-                                          _UserInfoRow(
-                                            title: 'Email',
-                                            subtitle: userEmail,
-                                            onEdit: _editUserEmail,
-                                          ),
-                                          const SizedBox(height: 10),
-                                          _UserInfoRow(
-                                            title: 'Phone Number',
-                                            subtitle: userPhoneNumber,
-                                            onEdit: _editUserPhoneNumber,
-                                          ),
-                                        ],
-                                      )
-                                    : ListView.builder(
-                                        shrinkWrap: true,
-                                        physics: const NeverScrollableScrollPhysics(),
-                                        itemCount: _mockTimeline.length,
-                                        itemBuilder: (context, index) {
-                                          return _TimelineItem(
-                                            event: _mockTimeline[index],
-                                            isLast: index == _mockTimeline.length - 1,
-                                          );
-                                        },
-                                      ),
-                              ],
-                            ),
+                    // Content Panel
+                    _GlassPanel(
+                      child: Column(
+                        children: [
+                          _SegmentedTabs(
+                            value: tab,
+                            onChanged: (v) async {
+                              if (v == 1) { // If 'Time Line' tab is selected
+                                bool verified = await _verifyPasswordForTimeline();
+                                if (verified) {
+                                  setState(() => tab = v);
+                                } else {
+                                  // Optionally show a message if verification fails
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Password verification failed.')),
+                                  );
+                                }
+                              } else {
+                                setState(() => tab = v);
+                              }
+                            },
                           ),
+                          const SizedBox(height: 20),
+                          tab == 0
+                              ? Column(
+                                  children: [
+                                    _UserInfoRow(
+                                      title: 'User Name',
+                                      subtitle: userName,
+                                      onEdit: _editUserName,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    _UserInfoRow(
+                                      title: 'Email',
+                                      subtitle: userEmail,
+                                      onEdit: _editUserEmail,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    _UserInfoRow(
+                                      title: 'Phone Number',
+                                      subtitle: userPhoneNumber,
+                                      onEdit: _editUserPhoneNumber,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    _UserInfoRow(
+                                      title: 'Password',
+                                      subtitle: '********', // Masked password
+                                      onEdit: _editUserPassword,
+                                    ),
+                                  ],
+                                )
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _mockTimeline.length,
+                                  itemBuilder: (context, index) {
+                                    return _TimelineItem(
+                                      event: _mockTimeline[index],
+                                      isLast: index == _mockTimeline.length - 1,
+                                    );
+                                  },
+                                ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -313,11 +545,18 @@ class _UserInfoRow extends StatelessWidget {
   }
 }
 
-class _TimelineItem extends StatelessWidget {
+class _TimelineItem extends StatefulWidget { // Changed to StatefulWidget
   final TimelineEvent event;
   final bool isLast;
 
   const _TimelineItem({required this.event, required this.isLast});
+
+  @override
+  State<_TimelineItem> createState() => _TimelineItemState();
+}
+
+class _TimelineItemState extends State<_TimelineItem> {
+  bool _isExpanded = false; // State to manage expansion
 
   @override
   Widget build(BuildContext context) {
@@ -336,9 +575,9 @@ class _TimelineItem extends StatelessWidget {
                   color: AppPallete.primaryColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(event.icon, color: AppPallete.primaryColor, size: 20),
+                child: Icon(widget.event.icon, color: AppPallete.primaryColor, size: 20),
               ),
-              if (!isLast)
+              if (!widget.isLast)
                 Expanded(
                   child: Container(
                     width: 2,
@@ -349,67 +588,51 @@ class _TimelineItem extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  event.date,
-                  style: TextStyle(color: textColor.withOpacity(0.5), fontSize: 12),
-                ),
-                Text(
-                  event.title,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Text(
-                  event.description,
-                  style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 14),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopHeader extends StatelessWidget {
-  const _TopHeader({required this.violet, required this.violet2});
-
-  final Color violet;
-  final Color violet2;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 190,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(-0.6, -1.0),
-                  radius: 1.35,
-                  colors: [
-                    violet,
-                    violet2,
-                    Colors.blue.shade900,
+            child: GestureDetector( // Make the item tappable for expansion
+              onTap: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.event.date,
+                    style: TextStyle(color: textColor.withOpacity(0.5), fontSize: 12),
+                  ),
+                  Text(
+                    widget.event.title,
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  Text( // Display doctor's name here
+                    'Dr. ${widget.event.doctorName}',
+                    style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 14),
+                  ),
+                  if (_isExpanded) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      'Doctor\'s Notes:',
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    Text(
+                      widget.event.doctorNotes,
+                      style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 14),
+                    ),
+                    if (widget.event.prescriptions.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'Prescriptions:',
+                        style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      ...widget.event.prescriptions.map((p) => Text(
+                        '- $p',
+                        style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 14),
+                      )),
+                    ],
                   ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            right: -140,
-            top: -140,
-            child: Container(
-              width: 360,
-              height: 360,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(.25), width: 1),
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
           ),
@@ -418,6 +641,8 @@ class _TopHeader extends StatelessWidget {
     );
   }
 }
+
+// Removed _TopHeader class as it's replaced by CustomAppBar
 
 class _Avatar extends StatelessWidget {
   const _Avatar();

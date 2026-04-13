@@ -8,6 +8,7 @@ import 'package:blog_app/features/auth/presentation/widgets/auth_field.dart';
 import 'package:blog_app/features/auth/presentation/widgets/auth_gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:blog_app/core/widgets/custom_app_bar.dart'; // Import CustomAppBar
 
 class LoginPage extends StatefulWidget {
   static route() => MaterialPageRoute(
@@ -39,6 +40,7 @@ class _LoginPageState extends State<LoginPage> {
 
     return Scaffold(
       backgroundColor: isDark ? AppPallete.backgroundColor : AppPallete.lightBlueWhite,
+      appBar: const CustomAppBar(title: 'Login', hideAssistantIcon: false), // Show AI assistant icon
       body: Center(
         child: SingleChildScrollView(
           child: Padding(

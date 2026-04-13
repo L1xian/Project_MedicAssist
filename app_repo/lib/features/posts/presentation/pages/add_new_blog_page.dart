@@ -5,11 +5,12 @@ import 'package:blog_app/core/widgets/loader.dart';
 import 'package:blog_app/theme/app_pallete.dart';
 import 'package:blog_app/core/utils/pick_image.dart';
 import 'package:blog_app/core/utils/show_snackbar.dart';
-import 'package:blog_app/features/blog/presentation/bloc/blog_bloc.dart';
-import 'package:blog_app/features/blog/presentation/widgets/blog_editor.dart';
+import 'package:blog_app/features/posts/presentation/bloc/blog_bloc.dart';
+import 'package:blog_app/features/posts/presentation/widgets/blog_editor.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:blog_app/core/widgets/custom_app_bar.dart'; // Import CustomAppBar
 
 class AddNewBlogPage extends StatefulWidget {
   static route() => MaterialPageRoute(
@@ -59,8 +60,8 @@ class _AddNewBlogPageState extends State<AddNewBlogPage> {
         return;
       }
 
-      context.read<BlogBloc>().add(
-            BlogUpload(
+      context.read<PostsBloc>().add(
+            PostUpload(
               posterId: posterId,
               title: titleController.text.trim(),
               content: contentController.text.trim(),
@@ -82,24 +83,26 @@ class _AddNewBlogPageState extends State<AddNewBlogPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
+        title: 'Add New Blog',
         actions: [
           IconButton(
             onPressed: uploadBlog,
             icon: const Icon(Icons.done_rounded),
           ),
         ],
+        hideAssistantIcon: true, // Hide AI assistant icon on this page
       ),
-      body: BlocConsumer<BlogBloc, BlogState>(
+      body: BlocConsumer<PostsBloc, PostsState>(
         listener: (context, state) {
-          if (state is BlogFailure) {
+          if (state is PostsFailure) {
             showSnackBar(context, state.message);
-          } else if (state is BlogUploadSuccess) {
+          } else if (state is PostUploadSuccess) {
             Navigator.pop(context);
           }
         },
         builder: (context, state) {
-          if (state is BlogLoading) {
+          if (state is PostsLoading) {
             return const Loader();
           }
 

@@ -3,6 +3,7 @@ import 'package:blog_app/core/utils/calculate_reading_time.dart';
 import 'package:blog_app/core/utils/format_date.dart';
 import 'package:blog_app/features/blog/domain/blog.dart';
 import 'package:flutter/material.dart';
+import 'package:blog_app/core/widgets/custom_app_bar.dart'; // Import CustomAppBar
 
 class BlogViewerPage extends StatelessWidget {
   static route(Blog blog) => MaterialPageRoute(
@@ -20,7 +21,7 @@ class BlogViewerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: const CustomAppBar(title: 'Blog Post', hideAssistantIcon: true), // Replaced AppBar with CustomAppBar and hid AI icon
       body: Scrollbar(
         child: SingleChildScrollView(
           child: Padding(

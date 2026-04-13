@@ -2,27 +2,27 @@ import 'dart:io';
 import 'package:blog_app/core/constants/constants.dart';
 import 'package:blog_app/core/constants/errors.dart';
 import 'package:blog_app/core/constants/connection_checker.dart';
-import 'package:blog_app/features/blog/data/datasources/blog_local_data_source.dart';
-import 'package:blog_app/features/blog/data/datasources/blog_remote_data_source.dart';
-import 'package:blog_app/features/blog/domain/blog.dart';
-import 'package:blog_app/features/blog/domain/blog_repository.dart';
+import 'package:blog_app/features/posts/data/datasources/blog_local_data_source.dart';
+import 'package:blog_app/features/posts/data/datasources/blog_remote_data_source.dart';
+import 'package:blog_app/features/posts/domain/post.dart';
+import 'package:blog_app/features/posts/domain/post_repository.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:uuid/uuid.dart';
 
-class BlogRepositoryImpl implements BlogRepository {
-  final BlogRemoteDataSource blogRemoteDataSource;
-  final BlogLocalDataSource blogLocalDataSource;
+class PostRepositoryImpl implements PostRepository {
+  final PostRemoteDataSource blogRemoteDataSource;
+  final PostLocalDataSource blogLocalDataSource;
   final ConnectionChecker connectionChecker;
 
-  BlogRepositoryImpl(
+  PostRepositoryImpl(
     this.blogRemoteDataSource,
     this.blogLocalDataSource,
     this.connectionChecker,
   );
 
   @override
-  Future<Either<Failure, Blog>> uploadBlog({
-    File? image,
+  Future<Either<Failure, Post>> uploadPost({
+    required File? image,
     required String title,
     required String content,
     required String posterId,
@@ -32,7 +32,7 @@ class BlogRepositoryImpl implements BlogRepository {
       if (!await (connectionChecker.isConnected)) {
         return left(Failure(Constants.noConnectionErrorMessage));
       }
-      Blog blog = Blog(
+      Post post = Post(
         id: const Uuid().v1(),
         posterId: posterId,
         title: title,
@@ -43,28 +43,28 @@ class BlogRepositoryImpl implements BlogRepository {
       );
 
       if (image != null) {
-        final imageUrl = await blogRemoteDataSource.uploadBlogImage(
+        final imageUrl = await blogRemoteDataSource.uploadPostImage(
           image: image,
-          blog: blog,
+          post: post,
         );
-        blog = blog.copyWith(imageUrl: imageUrl);
+        post = post.copyWith(imageUrl: imageUrl);
       }
 
-      final uploadedBlog = await blogRemoteDataSource.uploadBlog(blog);
-      return right(uploadedBlog);
+      final uploadedPost = await blogRemoteDataSource.uploadPost(post);
+      return right(uploadedPost);
     } on ServerException catch (e) {
       return left(Failure(e.message));
     }
   }
 
   @override
-  Future<Either<Failure, List<Blog>>> getAllBlogs() async {
+  Future<Either<Failure, List<Post>>> getAllPosts() async {
     try {
       if (!await (connectionChecker.isConnected)) {
-        return right(blogLocalDataSource.loadBlogs());
+        return right(blogLocalDataSource.loadPosts());
       }
-      final blogs = await blogRemoteDataSource.getAllBlogs();
-      blogLocalDataSource.uploadLocalBlogs(blogs: blogs);
+      final blogs = await blogRemoteDataSource.getAllPosts();
+      blogLocalDataSource.uploadLocalPosts(posts: blogs);
       return right(blogs);
     } on ServerException catch (e) {
       return left(Failure(e.message));

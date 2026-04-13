@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:blog_app/init_dependencies.dart';
 import 'package:blog_app/core/utils/settings_menu.dart';
+import 'package:blog_app/core/widgets/custom_app_bar.dart'; // Import CustomAppBar
 
 class SchedulerPage extends StatefulWidget {
   const SchedulerPage({super.key});
@@ -45,14 +46,34 @@ class _SchedulerPageState extends State<SchedulerPage> {
 
       setState(() {
         _selectedEvents = List<Map<String, dynamic>>.from(response);
-        // Add a test appointment if no real events are found
+        // Add a few test appointments if no real events are found
         if (_selectedEvents.isEmpty) {
-          _selectedEvents.add({
-            'summary': 'Demo Appointment',
-            'description': 'No appointments found in database. Showing demo.',
-            'start_time': DateTime(day.year, day.month, day.day, 10, 0).toIso8601String(),
-            'end_time': DateTime(day.year, day.month, day.day, 11, 0).toIso8601String(),
-          });
+          _selectedEvents.addAll([
+            {
+              'summary': 'Morning Check-up',
+              'description': 'Routine physical examination with Dr. Smith.',
+              'start_time': DateTime(day.year, day.month, day.day, 9, 30).toIso8601String(),
+              'end_time': DateTime(day.year, day.month, day.day, 10, 0).toIso8601String(),
+            },
+            {
+              'summary': 'Dental Cleaning',
+              'description': 'Bi-annual dental check-up with Dr. Lee.',
+              'start_time': DateTime(day.year, day.month, day.day, 11, 0).toIso8601String(),
+              'end_time': DateTime(day.year, day.month, day.day, 12, 0).toIso8601String(),
+            },
+            {
+              'summary': 'Therapy Session',
+              'description': 'Weekly therapy session with Dr. Green.',
+              'start_time': DateTime(day.year, day.month, day.day, 14, 0).toIso8601String(),
+              'end_time': DateTime(day.year, day.month, day.day, 15, 0).toIso8601String(),
+            },
+            {
+              'summary': 'Eye Exam',
+              'description': 'Annual eye examination with Dr. Brown.',
+              'start_time': DateTime(day.year, day.month, day.day, 16, 30).toIso8601String(),
+              'end_time': DateTime(day.year, day.month, day.day, 17, 0).toIso8601String(),
+            },
+          ]);
         }
       });
     } catch (e) {
@@ -95,35 +116,17 @@ class _SchedulerPageState extends State<SchedulerPage> {
 
     return Scaffold(
       backgroundColor: backgroundColor,
+      appBar: CustomAppBar(
+        title: 'Schedule',
+        leading: IconButton(
+          icon: Icon(Icons.menu_rounded, color: textColor),
+          onPressed: () => showSettingsMenu(context),
+        ),
+        hideAssistantIcon: true, // Hide AI assistant icon on this page
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // Top Bar
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.menu_rounded, color: textColor),
-                    onPressed: () => showSettingsMenu(context),
-                  ),
-                  Container(
-                    height: 24,
-                    width: 1,
-                    color: borderColor,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  Text(
-                    'Schedule',
-                    style: TextStyle(
-                      color: textColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: Column(
                 children: [

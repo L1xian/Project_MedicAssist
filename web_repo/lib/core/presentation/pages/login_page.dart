@@ -51,17 +51,23 @@ class LoginPage extends StatelessWidget {
                           child: Row(
                             children: [
                               Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor,
-                                  borderRadius: BorderRadius.circular(8),
+                                width: 48, // Increased container width
+                                height: 48, // Increased container height
+                                decoration: const BoxDecoration( // Changed to const
+                                  color: Colors.white24,
+                                  shape: BoxShape.circle, // Changed to circular shape
                                 ),
-                                child: const Icon(Icons.layers, color: Colors.white),
+                                child: Image.asset(
+                                  'lib/core/theme/img/logo.png', // Corrected filename
+                                  fit: BoxFit.contain, // Image will fill the container while maintaining aspect ratio
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(Icons.error, color: Colors.red, size: 24); // Increased error icon size
+                                  },
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Text(
-                                'Template\nDesign',
+                                'Medic\nAssist',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,

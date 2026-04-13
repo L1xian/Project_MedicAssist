@@ -1,4 +1,4 @@
-class Blog {
+class Post { // Renamed class from Blog to Post
   final String id;
   final String posterId;
   final String title;
@@ -8,7 +8,7 @@ class Blog {
   final DateTime updatedAt;
   final String? posterName;
 
-  Blog({
+  Post({ // Renamed constructor from Blog to Post
     required this.id,
     required this.posterId,
     required this.title,
@@ -31,8 +31,8 @@ class Blog {
     };
   }
 
-  factory Blog.fromJson(Map<String, dynamic> map) {
-    return Blog(
+  factory Post.fromJson(Map<String, dynamic> map) { // Renamed factory from Blog.fromJson to Post.fromJson
+    return Post( // Renamed constructor call from Blog to Post
       id: map['id'] as String? ?? '',
       posterId: map['poster_id'] as String? ?? '',
       title: map['title'] as String? ?? '',
@@ -46,7 +46,7 @@ class Blog {
     );
   }
 
-  Blog copyWith({
+  Post copyWith({ // Renamed method from Blog copyWith to Post copyWith
     String? id,
     String? posterId,
     String? title,
@@ -56,7 +56,7 @@ class Blog {
     DateTime? updatedAt,
     String? posterName,
   }) {
-    return Blog(
+    return Post( // Renamed constructor call from Blog to Post
       id: id ?? this.id,
       posterId: posterId ?? this.posterId,
       title: title ?? this.title,

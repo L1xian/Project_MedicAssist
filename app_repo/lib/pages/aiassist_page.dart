@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:blog_app/theme/app_pallete.dart';
 import 'package:blog_app/core/utils/settings_menu.dart';
 import 'package:flutter/material.dart';
+// Removed CustomAppBar import as it's no longer needed here
 
 class AiAssistPage extends StatefulWidget {
   const AiAssistPage({super.key});
@@ -11,7 +12,7 @@ class AiAssistPage extends StatefulWidget {
   State<AiAssistPage> createState() => _AiAssistPageState();
 }
 
-class _AiAssistPageState extends State<AiAssistPage> {
+class _AiAssistPageState extends State<AiAssistPage> with TickerProviderStateMixin {
   final List<Map<String, dynamic>> _messages = [];
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -88,37 +89,20 @@ class _AiAssistPageState extends State<AiAssistPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? AppPallete.whiteColor : AppPallete.backgroundColor;
+    // final textColor = isDark ? AppPallete.whiteColor : AppPallete.backgroundColor; // No longer needed here
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      // Removed AppBar as it will be displayed as a modal
       body: SafeArea(
         child: Column(
           children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.menu_rounded, color: textColor),
-                    onPressed: () => showSettingsMenu(context),
-                  ),
-                  Container(
-                    height: 24,
-                    width: 1,
-                    color: AppPallete.borderColor,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  Text(
-                    'AI Assistant',
-                    style: TextStyle(
-                      color: textColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
+            // Add a custom close button or handle back navigation for the modal
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
             Expanded(

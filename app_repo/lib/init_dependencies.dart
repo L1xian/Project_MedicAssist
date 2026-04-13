@@ -11,12 +11,12 @@ import 'package:blog_app/features/auth/data/auth_repository_impl.dart';
 import 'package:blog_app/features/auth/domain/auth_repository.dart';
 import 'package:blog_app/features/auth/domain/auth_usecases.dart';
 import 'package:blog_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:blog_app/features/blog/data/datasources/blog_local_data_source.dart';
-import 'package:blog_app/features/blog/data/datasources/blog_remote_data_source.dart';
-import 'package:blog_app/features/blog/data/datasources/blog_repository_impl.dart';
-import 'package:blog_app/features/blog/domain/blog_repository.dart';
-import 'package:blog_app/features/blog/domain/blog_usecases.dart';
-import 'package:blog_app/features/blog/presentation/bloc/blog_bloc.dart';
+import 'package:blog_app/features/posts/data/datasources/blog_local_data_source.dart';
+import 'package:blog_app/features/posts/data/datasources/blog_remote_data_source.dart';
+import 'package:blog_app/features/posts/data/datasources/blog_repository_impl.dart';
+import 'package:blog_app/features/posts/domain/post_repository.dart';
+import 'package:blog_app/features/posts/domain/post_usecases.dart';
+import 'package:blog_app/features/posts/presentation/bloc/blog_bloc.dart';
 import 'package:blog_app/features/activity_tracking/data/activity_local_data_source.dart';
 import 'package:blog_app/features/activity_tracking/data/activity_manager.dart';
 import 'package:get_it/get_it.dart';
@@ -103,21 +103,21 @@ void _initAuth() {
 
 void _initBlog() {
   serviceLocator
-    ..registerFactory<BlogRemoteDataSource>(
-      () => BlogRemoteDataSourceImpl(serviceLocator()),
+    ..registerFactory<PostRemoteDataSource>(
+      () => PostRemoteDataSourceImpl(serviceLocator()),
     )
-    ..registerFactory<BlogLocalDataSource>(
-      () => BlogLocalDataSourceImpl(serviceLocator(instanceName: 'blogsBox')),
+    ..registerFactory<PostLocalDataSource>(
+      () => PostLocalDataSourceImpl(serviceLocator(instanceName: 'blogsBox')),
     )
-    ..registerFactory<BlogRepository>(
-      () => BlogRepositoryImpl(serviceLocator(), serviceLocator(), serviceLocator()),
+    ..registerFactory<PostRepository>(
+      () => PostRepositoryImpl(serviceLocator(), serviceLocator(), serviceLocator()),
     )
-    ..registerFactory(() => UploadBlog(serviceLocator()))
-    ..registerFactory(() => GetAllBlogs(serviceLocator()))
+    ..registerFactory(() => UploadPost(serviceLocator()))
+    ..registerFactory(() => GetAllPosts(serviceLocator()))
     ..registerLazySingleton(
-      () => BlogBloc(
-        uploadBlog: serviceLocator(),
-        getAllBlogs: serviceLocator(),
+      () => PostsBloc(
+        uploadPost: serviceLocator(),
+        getAllPosts: serviceLocator(),
       ),
     );
 }
