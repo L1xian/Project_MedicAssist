@@ -6,8 +6,8 @@ Medical app that assists patients and helps doctors
 
  application components
 
-flutter
-Get_it
-bloc
-supabase
-hive
+-flutter
+-Get_it
+-bloc
+-supabase
+-hive
