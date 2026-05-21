@@ -1,5 +1,24 @@
 import 'package:flutter/material.dart';
 
+// Define a class for Checkup details for better structure
+class CheckupDetail {
+  final String date;
+  final String time;
+  final String type;
+  final String notes;
+  final String prescriptions; // New field for prescriptions
+  final String doctor;
+
+  CheckupDetail({
+    required this.date,
+    required this.time,
+    required this.type,
+    required this.notes,
+    this.prescriptions = 'No prescriptions given.', // Default value
+    required this.doctor,
+  });
+}
+
 class PatientHistoryWidget extends StatefulWidget {
   final String patientName;
   final VoidCallback? onBack;
@@ -18,37 +37,41 @@ class PatientHistoryWidget extends StatefulWidget {
 
 class _PatientHistoryWidgetState extends State<PatientHistoryWidget> {
   // Mock patient history data
-  List<Map<String, String>> _getPatientHistory(String patientName) {
+  List<CheckupDetail> _getPatientHistory(String patientName) {
     // In a real app, this would fetch from a database
     return [
-      {
-        'date': '2024-03-15',
-        'time': '09:00',
-        'type': 'General Checkup',
-        'notes': 'Routine examination. Blood pressure normal. Prescribed vitamins.',
-        'doctor': 'Dr. Smith'
-      },
-      {
-        'date': '2024-02-28',
-        'time': '14:30',
-        'type': 'Follow-up Visit',
-        'notes': 'Follow-up on previous treatment. Patient showing improvement.',
-        'doctor': 'Dr. Johnson'
-      },
-      {
-        'date': '2024-01-20',
-        'time': '11:00',
-        'type': 'Consultation',
-        'notes': 'Initial consultation for ongoing symptoms. Recommended tests.',
-        'doctor': 'Dr. Williams'
-      },
-      {
-        'date': '2023-12-10',
-        'time': '10:15',
-        'type': 'Emergency Visit',
-        'notes': 'Acute symptoms. Treated and monitored. Discharged with medication.',
-        'doctor': 'Dr. Brown'
-      },
+      CheckupDetail(
+        date: '2024-03-15',
+        time: '09:00 AM',
+        type: 'General Checkup',
+        notes: 'Routine examination. Patient reported feeling well. Blood pressure normal.',
+        prescriptions: 'Multivitamin (once daily), Paracetamol (as needed for pain).',
+        doctor: 'Dr. Smith',
+      ),
+      CheckupDetail(
+        date: '2024-02-28',
+        time: '02:30 PM',
+        type: 'Follow-up Visit',
+        notes: 'Follow-up on previous treatment for flu. Patient showing significant improvement. No fever.',
+        prescriptions: 'No new prescriptions. Continue previous course if symptoms return.',
+        doctor: 'Dr. Johnson',
+      ),
+      CheckupDetail(
+        date: '2024-01-20',
+        time: '11:00 AM',
+        type: 'Consultation',
+        notes: 'Initial consultation for persistent headaches. Recommended MRI scan and neurological evaluation.',
+        prescriptions: 'Ibuprofen (as needed for headache relief).',
+        doctor: 'Dr. Williams',
+      ),
+      CheckupDetail(
+        date: '2023-12-10',
+        time: '10:15 AM',
+        type: 'Emergency Visit',
+        notes: 'Acute abdominal pain. Diagnosed with mild gastritis. Patient stable after treatment.',
+        prescriptions: 'Omeprazole (once daily for 7 days), Antacid (as needed).',
+        doctor: 'Dr. Brown',
+      ),
     ];
   }
 
@@ -57,6 +80,8 @@ class _PatientHistoryWidgetState extends State<PatientHistoryWidget> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final history = _getPatientHistory(widget.patientName);
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodySmall?.color;
 
     return Container(
       color: theme.scaffoldBackgroundColor,
@@ -163,7 +188,7 @@ class _PatientHistoryWidgetState extends State<PatientHistoryWidget> {
                         Icon(
                           Icons.history,
                           size: 48,
-                          color: Colors.grey.withValues(alpha: 0.5),
+                          color: Colors.grey.withOpacity(0.5),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -183,66 +208,61 @@ class _PatientHistoryWidgetState extends State<PatientHistoryWidget> {
                       return Card(
                         color: isDark ? const Color(0xFF22222D) : Colors.white,
                         margin: const EdgeInsets.only(bottom: 12.0),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '${record['date']} at ${record['time']}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: theme.primaryColor.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      record['type'] ?? '',
-                                      style: TextStyle(
-                                        color: theme.primaryColor,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                record['notes'] ?? '',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: isDark ? Colors.white70 : Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.medical_services,
-                                    size: 16,
-                                    color: isDark ? Colors.white54 : Colors.grey[500],
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Dr. ${record['doctor']}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark ? Colors.white54 : Colors.grey[500],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                        child: ExpansionTile(
+                          title: Text(
+                            '${record.date} - ${record.type}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: textColor,
+                            ),
                           ),
+                          subtitle: Text(
+                            '${record.time} | Dr. ${record.doctor}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: subtitleColor,
+                            ),
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Notes:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    record.notes,
+                                    style: TextStyle(
+                                      color: subtitleColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Prescriptions:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    record.prescriptions,
+                                    style: TextStyle(
+                                      color: subtitleColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },

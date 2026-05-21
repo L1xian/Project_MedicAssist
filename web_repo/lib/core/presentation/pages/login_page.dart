@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 import 'main_page.dart';
+import 'signup_page.dart'; // Import the new signup page
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  final ValueChanged<ThemeMode> onThemeChanged;
+
+  const LoginPage({super.key, required this.onThemeChanged});
 
   @override
   Widget build(BuildContext context) {
-    // Use MediaQuery to get screen size for responsive layout
     final size = MediaQuery.of(context).size;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context); // Get the current theme
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Determine text color based on theme for the links
+    final linkTextColor = isDark ? Colors.white : Colors.black;
 
     return Scaffold(
       body: Container(
-        color: Theme.of(context).primaryColor, // Background blue color
+        color: theme.primaryColor, // Background blue color
         child: Center(
           child: Container(
             width: size.width * 0.8,
             height: size.height * 0.7,
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
+              color: theme.primaryColor,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -51,17 +57,17 @@ class LoginPage extends StatelessWidget {
                           child: Row(
                             children: [
                               Container(
-                                width: 48, // Increased container width
-                                height: 48, // Increased container height
-                                decoration: const BoxDecoration( // Changed to const
+                                width: 48,
+                                height: 48,
+                                decoration: const BoxDecoration(
                                   color: Colors.white24,
-                                  shape: BoxShape.circle, // Changed to circular shape
+                                  shape: BoxShape.circle,
                                 ),
                                 child: Image.asset(
-                                  'lib/core/theme/img/logo.png', // Corrected filename
-                                  fit: BoxFit.contain, // Image will fill the container while maintaining aspect ratio
+                                  'lib/core/theme/img/logo.png',
+                                  fit: BoxFit.contain,
                                   errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(Icons.error, color: Colors.red, size: 24); // Increased error icon size
+                                    return const Icon(Icons.error, color: Colors.red, size: 24);
                                   },
                                 ),
                               ),
@@ -71,7 +77,7 @@ class LoginPage extends StatelessWidget {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
-                                  color: Theme.of(context).primaryColor,
+                                  color: theme.primaryColor,
                                 ),
                               ),
                             ],
@@ -81,7 +87,7 @@ class LoginPage extends StatelessWidget {
                         // User icon
                         CircleAvatar(
                           radius: 40,
-                          backgroundColor: Theme.of(context).primaryColor,
+                          backgroundColor: theme.primaryColor,
                           child: const Icon(
                             Icons.person_outline,
                             size: 50,
@@ -125,13 +131,15 @@ class LoginPage extends StatelessWidget {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
-                                  foregroundColor: Theme.of(context).primaryColor,
+                                  foregroundColor: theme.primaryColor,
                                 ),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const MainPage(),
+                                      builder: (context) => MainPage(
+                                        onThemeChanged: onThemeChanged,
+                                      ),
                                     ),
                                   );
                                 },
@@ -155,13 +163,18 @@ class LoginPage extends StatelessWidget {
                                 minimumSize: const Size(0, 0),
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              child: const Text(
+                              child: Text( // Changed to Text widget to apply dynamic color
                                 'Forgot password?',
-                                style: TextStyle(fontSize: 12, color: Colors.white),
+                                style: TextStyle(fontSize: 12, color: linkTextColor), // Use dynamic color
                               ),
                             ),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const SignUpPage()),
+                                );
+                              },
                               style: TextButton.styleFrom(
                                 padding: EdgeInsets.zero,
                                 minimumSize: const Size(0, 0),
@@ -172,13 +185,13 @@ class LoginPage extends StatelessWidget {
                                   text: 'Not a member? ',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.white,
+                                    color: linkTextColor, // Use dynamic color
                                   ),
                                   children: [
                                     TextSpan(
                                       text: 'Sign up',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: linkTextColor, // Use dynamic color
                                         fontWeight: FontWeight.bold,
                                         decoration: TextDecoration.underline,
                                       ),
@@ -190,7 +203,7 @@ class LoginPage extends StatelessWidget {
                           ],
                         ),
 
-                        const SizedBox(height: 10), // Added spacing instead of dots
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),
@@ -201,7 +214,7 @@ class LoginPage extends StatelessWidget {
                   flex: 6,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
+                      color: theme.primaryColor,
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(20),
                         bottomRight: Radius.circular(20),

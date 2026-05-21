@@ -138,6 +138,90 @@ class _DoctorsPageState extends State<DoctorsPage> {
     });
   }
 
+  void _showBookingDialog(BuildContext context, Doctor doctor) {
+    DateTime? selectedDate;
+    TimeOfDay? selectedTime;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final textColor = isDark ? AppPallete.whiteColor : AppPallete.backgroundColor;
+            final dialogColor = isDark ? AppPallete.surfaceColor : Colors.white;
+
+            return AlertDialog(
+              backgroundColor: dialogColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text(
+                'Book with ${doctor.name}',
+                style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.calendar_today, color: AppPallete.primaryColor),
+                    title: Text(
+                      selectedDate == null 
+                          ? 'Select Date' 
+                          : '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
+                      style: TextStyle(color: textColor),
+                    ),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) setDialogState(() => selectedDate = picked);
+                    },
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.access_time, color: AppPallete.primaryColor),
+                    title: Text(
+                      selectedTime == null ? 'Select Time' : selectedTime!.format(context),
+                      style: TextStyle(color: textColor),
+                    ),
+                    onTap: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (picked != null) setDialogState(() => selectedTime = picked);
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Cancel', style: TextStyle(color: AppPallete.greyColor)),
+                ),
+                ElevatedButton(
+                  onPressed: (selectedDate != null && selectedTime != null)
+                      ? () {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Appointment confirmed for ${selectedDate!.day}/${selectedDate!.month} at ${selectedTime!.format(context)}')),
+                          );
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(backgroundColor: AppPallete.primaryColor),
+                  child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showDoctorDetails(BuildContext context, Doctor doctor) {
     showModalBottomSheet(
       context: context,
@@ -229,11 +313,8 @@ class _DoctorsPageState extends State<DoctorsPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              // Implement appointment reservation logic
                               Navigator.pop(context); // Close the modal
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Appointment reserved with ${doctor.name}')),
-                              );
+                              _showBookingDialog(context, doctor);
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppPallete.primaryColor,

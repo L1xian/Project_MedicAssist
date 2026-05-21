@@ -9,6 +9,7 @@ import 'userprofile_page.dart';
 import 'scheduler_page.dart';
 import 'doctors_page.dart'; // Import the new DoctorsPage
 import 'package:blog_app/core/widgets/custom_app_bar.dart'; // Import CustomAppBar
+import 'package:blog_app/core/utils/settings_menu.dart'; // Import the new settings menu utility
 
 class HomeScreen extends StatelessWidget {
   static route() => MaterialPageRoute(
@@ -36,57 +37,18 @@ class _NavigationBar extends StatefulWidget {
 class _NavigationBarState extends State<_NavigationBar> {
   int _tabIndex = 2;
 
-  final List<Widget> _pages = [
-    const ProfilePage(),
-    const SchedulerPage(),
-    const ActivityDashboard(),
-    const PostsPage(),
-    const DoctorsPage(), // Added DoctorsPage
-  ];
+  late final List<Widget> _pages; // Changed to late final
 
-  void _showSettingsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Settings',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: Icon(
-                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                  color: AppPallete.primaryColor,
-                ),
-                title: Text(isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'),
-                onTap: () {
-                  AppTheme.themeNotifier.value = 
-                      isDark ? ThemeMode.light : ThemeMode.dark;
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                title: const Text('Logout'),
-                onTap: () {
-                  // Implement logout logic here
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const ProfilePage(),
+      const SchedulerPage(),
+      const ActivityDashboard(), // Removed onMenuPressed as CustomAppBar handles it
+      const PostsPage(),
+      const DoctorsPage(), // Added DoctorsPage
+    ];
   }
 
   @override
@@ -148,6 +110,7 @@ class _NavigationBarState extends State<_NavigationBar> {
 }
 
 class ActivityDashboard extends StatelessWidget {
+  // Removed onMenuPressed as CustomAppBar handles it
   const ActivityDashboard({super.key});
 
   @override
@@ -159,17 +122,7 @@ class ActivityDashboard extends StatelessWidget {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'MedicAssist',
-        leading: IconButton(
-          icon: Icon(Icons.menu_rounded, color: textColor),
-          onPressed: () {
-            // This will open the settings menu from the HomeScreen's _NavigationBar
-            // We need to find a way to access _showSettingsMenu from here.
-            // For now, I'll leave it as a placeholder or remove it if not directly accessible.
-            // A better approach would be to pass a callback or use a global key/provider.
-            // For this task, I'll assume a simple menu for now.
-            Scaffold.of(context).openDrawer(); // Example: if there's a Drawer
-          },
-        ),
+        // Removed leading IconButton as CustomAppBar now provides the settings menu
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
@@ -350,32 +303,41 @@ class _MetricTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 24, color: AppPallete.primaryColor),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
-              color: AppPallete.greyColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center, // Align items vertically in the center
             children: [
-              Text(
-                value,
-                style: TextStyle(
-                  color: isDark ? AppPallete.whiteColor : AppPallete.backgroundColor,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                subtitle,
-                style: TextStyle(color: AppPallete.greyColor, fontSize: 12),
+              Icon(icon, size: 24, color: AppPallete.primaryColor),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppPallete.greyColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        value,
+                        style: TextStyle(
+                          color: isDark ? AppPallete.whiteColor : AppPallete.backgroundColor,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(color: AppPallete.greyColor, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

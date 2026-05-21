@@ -3,9 +3,25 @@ import '../../utils/add_patient.dart';
 import '../../utils/add_appointment.dart';
 import '../../utils/manage_date.dart';
 import '../../utils/patient_history.dart';
+import 'left_sidebar_modules/calendar_module.dart';
+import 'left_sidebar_modules/inbox_module.dart';
+import 'left_sidebar_modules/appointment_request.dart';
+import 'main_content_modules/write_report_form.dart';
+import 'top_bar_modules/top_bar_category.dart';
+import 'login_page.dart'; // Import LoginPage for navigation
+
+enum MainContentCategory {
+  home,
+  addAppointmentCategory,
+  writeReport,
+  addPatient,
+  patientHistory,
+}
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final ValueChanged<ThemeMode> onThemeChanged;
+
+  const MainPage({super.key, required this.onThemeChanged});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -15,13 +31,13 @@ class _MainPageState extends State<MainPage> {
   bool _isCalendarExpanded = false;
   bool _isSidebarCollapsed = true;
   bool _isPatientsCollapsed = true;
-  bool _showAddPatientForm = false;
-  bool _showAddAppointmentForm = false;
   String? _selectedPatientForHistory;
   late DateTime _selectedDate;
   
-  // Test patients list
+  MainContentCategory _currentMainContentCategory = MainContentCategory.home;
+
   late List<String> _patients;
+  List<AppointmentRequest> _appointmentNotifications = [];
 
   @override
   void initState() {
@@ -33,6 +49,17 @@ class _MainPageState extends State<MainPage> {
       'Robert Johnson',
       'Sarah Williams',
       'Michael Brown',
+    ];
+
+    _appointmentNotifications = [
+      AppointmentRequest(
+        patientName: 'Alice Wonderland',
+        message: 'New appointment request from Alice Wonderland for 2023-11-15 at 11:00 AM',
+      ),
+      AppointmentRequest(
+        patientName: 'Bob The Builder',
+        message: 'New appointment request from Bob The Builder for 2023-11-16 at 09:30 AM',
+      ),
     ];
   }
 
@@ -65,10 +92,163 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
+  void _onCalendarExpansionChanged(bool expanded) {
+    setState(() {
+      _isCalendarExpanded = expanded;
+    });
+  }
+
+  void _onDateChanged(DateTime newDate) {
+    setState(() {
+      _selectedDate = newDate;
+    });
+  }
+
+  void _onAcceptAppointment(AppointmentRequest request) {
+    setState(() {
+      if (!_patients.contains(request.patientName)) {
+        _patients.add(request.patientName);
+      }
+      _appointmentNotifications.remove(request);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${request.patientName} added to patients and appointment accepted!')),
+    );
+  }
+
+  void _onCancelAppointment(AppointmentRequest request) {
+    setState(() {
+      _appointmentNotifications.remove(request);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Appointment from ${request.patientName} cancelled.')),
+    );
+  }
+
+  void _changeMainContentCategory(MainContentCategory category) async {
+    if (category == MainContentCategory.writeReport) {
+      final enteredPin = await _showPinDialog(context);
+      if (enteredPin == '1234') {
+        setState(() {
+          _currentMainContentCategory = category;
+          _selectedPatientForHistory = null;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Incorrect PIN. Access denied.')),
+        );
+      }
+    } else {
+      setState(() {
+        _currentMainContentCategory = category;
+        _selectedPatientForHistory = null;
+      });
+    }
+  }
+
+  void _showAddPatientForm() {
+    setState(() {
+      _currentMainContentCategory = MainContentCategory.addPatient;
+    });
+  }
+
+  void _hideAddPatientForm() {
+    setState(() {
+      _currentMainContentCategory = MainContentCategory.home;
+    });
+  }
+
+  void _showAddAppointmentForm() {
+    setState(() {
+      _currentMainContentCategory = MainContentCategory.addAppointmentCategory;
+    });
+  }
+
+  void _hideAddAppointmentForm() {
+    setState(() {
+      _currentMainContentCategory = MainContentCategory.home;
+    });
+  }
+
+  void _showPatientHistory(String patientName) {
+    setState(() {
+      _selectedPatientForHistory = patientName;
+      _currentMainContentCategory = MainContentCategory.patientHistory;
+    });
+  }
+
+  void _hidePatientHistory() {
+    setState(() {
+      _selectedPatientForHistory = null;
+      _currentMainContentCategory = MainContentCategory.home;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final sidebarTextColor = isDark ? Colors.white : Colors.black;
+    final sidebarIconColor = isDark ? Colors.white : Colors.black;
+    final patientListTextColor = isDark ? Colors.white : Colors.black;
+    final patientListSubtitleColor = isDark ? Colors.white70 : Colors.grey[600];
+
+    Widget _buildMainContent() {
+      switch (_currentMainContentCategory) {
+        case MainContentCategory.home:
+          if (_selectedPatientForHistory != null) {
+            return PatientHistoryWidget(
+              patientName: _selectedPatientForHistory!,
+              onBack: _hidePatientHistory,
+              onDelete: () {
+                setState(() {
+                  _patients.remove(_selectedPatientForHistory);
+                  _selectedPatientForHistory = null;
+                  _currentMainContentCategory = MainContentCategory.home;
+                });
+              },
+            );
+          }
+          return DayAppointmentsWidget(
+            selectedDate: _selectedDate,
+          );
+        case MainContentCategory.addAppointmentCategory:
+          return AddAppointmentWidget(
+            onCancel: _hideAddAppointmentForm,
+            patients: _patients,
+          );
+        case MainContentCategory.writeReport:
+          return WriteReportForm(
+            onCancel: () => _changeMainContentCategory(MainContentCategory.home),
+            patients: _patients,
+          );
+        case MainContentCategory.addPatient:
+          return AddPatientWidget(onCancel: _hideAddPatientForm);
+        case MainContentCategory.patientHistory:
+          return PatientHistoryWidget(
+            patientName: _selectedPatientForHistory!,
+            onBack: _hidePatientHistory,
+            onDelete: () {
+              setState(() {
+                _patients.remove(_selectedPatientForHistory);
+                _selectedPatientForHistory = null;
+                _currentMainContentCategory = MainContentCategory.home;
+              });
+            },
+          );
+      }
+    }
+
+    String _getMainContentTitle() {
+      switch (_currentMainContentCategory) {
+        case MainContentCategory.addPatient:
+          return 'Add New Patient';
+        case MainContentCategory.patientHistory:
+          return 'Patient History - $_selectedPatientForHistory';
+        default:
+          return '';
+      }
+    }
 
     return Scaffold(
       body: Column(
@@ -88,9 +268,9 @@ class _MainPageState extends State<MainPage> {
                     Container(
                       width: 48, 
                       height: 48, 
-                      decoration: const BoxDecoration( // Changed to const
+                      decoration: const BoxDecoration(
                         color: Colors.white24,
-                        shape: BoxShape.circle, // Changed to circular shape
+                        shape: BoxShape.circle,
                       ),
                       child: Image.asset(
                         'lib/core/theme/img/logo.png',
@@ -166,7 +346,7 @@ class _MainPageState extends State<MainPage> {
                               : MainAxisAlignment.start,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.menu, color: Colors.white),
+                              icon: Icon(Icons.menu, color: sidebarIconColor),
                               onPressed: () {
                                 setState(() {
                                   _isSidebarCollapsed = !_isSidebarCollapsed;
@@ -177,10 +357,10 @@ class _MainPageState extends State<MainPage> {
                               },
                             ),
                             if (!_isSidebarCollapsed)
-                              const Text(
+                              Text(
                                 'MENU',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: sidebarTextColor,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -189,78 +369,78 @@ class _MainPageState extends State<MainPage> {
                         ),
                       ),
                       
-                      // Expandable Calendar Menu
-                      _isSidebarCollapsed
-                          ? IconButton(
-                              icon: const Icon(Icons.calendar_today, color: Colors.white),
-                              onPressed: () {
-                                setState(() {
-                                  _isSidebarCollapsed = false;
-                                  _isCalendarExpanded = true;
-                                });
-                              },
-                              tooltip: 'Calendar',
-                            )
-                          : ExpansionTile(
-                              leading: const Icon(Icons.calendar_today, color: Colors.white),
-                              title: const Text('Calendar', style: TextStyle(color: Colors.white)),
-                              initiallyExpanded: _isCalendarExpanded,
-                              onExpansionChanged: (expanded) {
-                                setState(() {
-                                  _isCalendarExpanded = expanded;
-                                });
-                              },
-                              iconColor: Colors.white,
-                              collapsedIconColor: Colors.white,
-                              children: [
-                                Container(
-                                  height: 300,
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Theme(
-                                    data: theme.copyWith(
-                                      colorScheme: theme.colorScheme.copyWith(
-                                        onSurface: Colors.white,
-                                        surface: Colors.transparent,
-                                      ),
-                                      textTheme: theme.textTheme.apply(
-                                        bodyColor: Colors.white,
-                                        displayColor: Colors.white,
-                                      ),
-                                    ),
-                                    child: CalendarDatePicker(
-                                      initialDate: _selectedDate,
-                                      firstDate: DateTime(2000),
-                                      lastDate: DateTime(2100),
-                                      onDateChanged: (date) {
-                                        setState(() {
-                                          _selectedDate = date;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                      // Calendar Module (already dynamic)
+                      CalendarModule(
+                        isSidebarCollapsed: _isSidebarCollapsed,
+                        isCalendarExpanded: _isCalendarExpanded,
+                        selectedDate: _selectedDate,
+                        onExpansionChanged: _onCalendarExpansionChanged,
+                        onDateChanged: _onDateChanged,
+                      ),
+
+                      // Inbox Module (already dynamic)
+                      InboxModule(
+                        isSidebarCollapsed: _isSidebarCollapsed,
+                        appointmentNotifications: _appointmentNotifications,
+                        onAccept: _onAcceptAppointment,
+                        onCancel: _onCancelAppointment,
+                      ),
 
                       // Spacer to push remaining items to the bottom
                       const Spacer(),
 
-                      // Settings item at the bottom
-                      const Divider(color: Colors.white24),
+                      // Settings section
+                      Divider(color: theme.dividerColor),
                       _isSidebarCollapsed
                           ? IconButton(
-                              icon: const Icon(Icons.settings, color: Colors.white),
+                              icon: Icon(Icons.settings, color: sidebarIconColor),
                               onPressed: () {
                                 setState(() {
-                                  _isSidebarCollapsed = false;
+                                  _isSidebarCollapsed = false; // Expand sidebar to show settings menu
                                 });
                               },
                               tooltip: 'Settings',
                             )
-                          : ListTile(
-                              leading: const Icon(Icons.settings, color: Colors.white),
-                              title: const Text('Settings', style: TextStyle(color: Colors.white)),
-                              onTap: () {},
+                          : ExpansionTile(
+                              leading: Icon(Icons.settings, color: sidebarIconColor),
+                              title: Text('Settings', style: TextStyle(color: sidebarTextColor)),
+                              iconColor: sidebarIconColor,
+                              collapsedIconColor: sidebarIconColor,
+                              children: [
+                                // Theme Switch
+                                SwitchListTile(
+                                  title: Text('Dark Mode', style: TextStyle(color: sidebarTextColor)),
+                                  value: isDark,
+                                  onChanged: (bool value) {
+                                    widget.onThemeChanged(value ? ThemeMode.dark : ThemeMode.light);
+                                  },
+                                  activeColor: theme.primaryColor,
+                                ),
+                                // Switch Account
+                                ListTile(
+                                  title: Text('Switch Account', style: TextStyle(color: sidebarTextColor)),
+                                  leading: Icon(Icons.switch_account, color: sidebarIconColor),
+                                  onTap: () {
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => LoginPage(onThemeChanged: widget.onThemeChanged)),
+                                      (Route<dynamic> route) => false, // Remove all previous routes
+                                    );
+                                  },
+                                ),
+                                // Logout
+                                ListTile(
+                                  title: Text('Logout', style: TextStyle(color: sidebarTextColor)),
+                                  leading: Icon(Icons.logout, color: sidebarIconColor),
+                                  onTap: () {
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => LoginPage(onThemeChanged: widget.onThemeChanged)),
+                                      (Route<dynamic> route) => false, // Remove all previous routes
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                       const SizedBox(height: 10),
                     ],
@@ -286,55 +466,41 @@ class _MainPageState extends State<MainPage> {
                               ),
                             ),
                           ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            _showAddPatientForm 
-                              ? 'Add New Patient' 
-                              : _showAddAppointmentForm 
-                                ? 'Add New Appointment' 
-                                : _selectedPatientForHistory != null
-                                  ? 'Patient History - $_selectedPatientForHistory'
-                                  : 'Home',
-                            style: const TextStyle(color: Colors.white),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Display title for non-category views
+                              if (_getMainContentTitle().isNotEmpty)
+                                Text(
+                                  _getMainContentTitle(),
+                                  style: TextStyle(color: patientListTextColor),
+                                ),
+                              TopBarCategory(
+                                title: 'Add Appointment',
+                                icon: Icons.add_box,
+                                isSelected: _currentMainContentCategory == MainContentCategory.addAppointmentCategory,
+                                onTap: () => _changeMainContentCategory(MainContentCategory.addAppointmentCategory),
+                              ),
+                              const SizedBox(width: 16),
+                              TopBarCategory(
+                                title: 'Home',
+                                icon: Icons.home,
+                                isSelected: _currentMainContentCategory == MainContentCategory.home,
+                                onTap: () => _changeMainContentCategory(MainContentCategory.home),
+                              ),
+                              const SizedBox(width: 16),
+                              TopBarCategory(
+                                title: 'Write Report',
+                                icon: Icons.edit_document,
+                                isSelected: _currentMainContentCategory == MainContentCategory.writeReport,
+                                onTap: () => _changeMainContentCategory(MainContentCategory.writeReport),
+                              ),
+                            ],
                           ),
                         ),
                         Expanded(
-                          child: _showAddPatientForm 
-                            ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(32.0),
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(maxWidth: 500),
-                                    child: AddPatientWidget(onCancel: () => setState(() => _showAddPatientForm = false)),
-                                  ),
-                                ),
-                              )
-                            : _showAddAppointmentForm
-                              ? Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(32.0),
-                                    child: ConstrainedBox(
-                                      constraints: const BoxConstraints(maxWidth: 500),
-                                      child: AddAppointmentWidget(
-                                        onCancel: () => setState(() => _showAddAppointmentForm = false),
-                                        patients: _patients,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : _selectedPatientForHistory != null
-                                ? PatientHistoryWidget(
-                                    patientName: _selectedPatientForHistory!,
-                                    onBack: () => setState(() => _selectedPatientForHistory = null),
-                                    onDelete: () => setState(() {
-                                      _patients.remove(_selectedPatientForHistory);
-                                      _selectedPatientForHistory = null;
-                                    }),
-                                  )
-                                : DayAppointmentsWidget(
-                                    selectedDate: _selectedDate,
-                                    onAddAppointment: () => setState(() => _showAddAppointmentForm = true),
-                                  ),
+                          child: _buildMainContent(),
                         ),
                       ],
                     ),
@@ -365,12 +531,12 @@ class _MainPageState extends State<MainPage> {
                               : MainAxisAlignment.spaceBetween,
                           children: [
                             if (!_isPatientsCollapsed)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 16.0),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16.0),
                                 child: Text(
                                   'Patients',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: patientListTextColor,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -379,7 +545,7 @@ class _MainPageState extends State<MainPage> {
                             IconButton(
                               icon: Icon(
                                 _isPatientsCollapsed ? Icons.people : Icons.arrow_forward_ios,
-                                color: Colors.white,
+                                color: sidebarIconColor,
                                 size: _isPatientsCollapsed ? 24 : 18,
                               ),
                               onPressed: () {
@@ -400,10 +566,7 @@ class _MainPageState extends State<MainPage> {
                                 ? const SizedBox.shrink()
                                 : ListView.separated(
                                     itemCount: _patients.length,
-                                    separatorBuilder: (context, index) => const Divider(
-                                      color: Colors.white24,
-                                      height: 1,
-                                    ),
+                                    separatorBuilder: (context, index) => Divider(color: theme.dividerColor),
                                     itemBuilder: (context, index) {
                                       return Tooltip(
                                         message: _patients[index],
@@ -423,18 +586,15 @@ class _MainPageState extends State<MainPage> {
                                     },
                                   )
                             : _patients.isEmpty
-                                ? const Center(
+                                ? Center(
                                     child: Text(
                                       'No Patients added',
-                                      style: TextStyle(color: Colors.white70),
+                                      style: TextStyle(color: patientListSubtitleColor),
                                     ),
                                   )
                                 : ListView.separated(
                                     itemCount: _patients.length,
-                                    separatorBuilder: (context, index) => const Divider(
-                                      color: Colors.white24,
-                                      height: 1,
-                                    ),
+                                    separatorBuilder: (context, index) => Divider(color: theme.dividerColor),
                                     itemBuilder: (context, index) {
                                       return ListTile(
                                         leading: CircleAvatar(
@@ -446,19 +606,16 @@ class _MainPageState extends State<MainPage> {
                                         ),
                                         title: Text(
                                           _patients[index],
-                                          style: const TextStyle(
-                                            color: Colors.white,
+                                          style: TextStyle(
+                                            color: patientListTextColor,
                                             fontSize: 14,
                                           ),
                                         ),
                                         onTap: () async {
                                           final enteredPin = await _showPinDialog(context);
                                           if (enteredPin == '1234') {
-                                            setState(() {
-                                              _selectedPatientForHistory = _patients[index];
-                                            });
+                                            _showPatientHistory(_patients[index]);
                                           }
-                                          // Handle tap
                                         },
                                       );
                                     },
@@ -466,25 +623,17 @@ class _MainPageState extends State<MainPage> {
                       ),
 
                       // Add Patient option at the bottom
-                      const Divider(color: Colors.white24),
+                      Divider(color: theme.dividerColor),
                       _isPatientsCollapsed
                           ? IconButton(
-                              icon: const Icon(Icons.add, color: Colors.white),
-                              onPressed: () {
-                                setState(() {
-                                  _showAddPatientForm = true;
-                                });
-                              },
+                              icon: Icon(Icons.add, color: sidebarIconColor),
+                              onPressed: _showAddPatientForm,
                               tooltip: 'Add Patient',
                             )
                           : ListTile(
-                              leading: const Icon(Icons.add, color: Colors.white),
-                              title: const Text('Add Patient', style: TextStyle(color: Colors.white)),
-                              onTap: () {
-                                setState(() {
-                                  _showAddPatientForm = true;
-                                });
-                              },
+                              leading: Icon(Icons.add, color: sidebarIconColor),
+                              title: Text('Add Patient', style: TextStyle(color: sidebarTextColor)),
+                              onTap: _showAddPatientForm,
                             ),
                       const SizedBox(height: 10),
                     ],

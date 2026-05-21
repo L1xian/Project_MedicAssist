@@ -1,11 +1,12 @@
 import 'package:blog_app/theme/app_pallete.dart';
 import 'package:flutter/material.dart';
 import 'package:blog_app/pages/aiassist_page.dart'; // Import the AiAssistPage
+import 'package:blog_app/core/utils/settings_menu.dart'; // Import the settings menu utility
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
-  final Widget? leading;
+  final Widget? leading; // Keep leading for custom overrides
   final bool hideAssistantIcon; // New property to optionally hide the AI assistant icon
 
   const CustomAppBar({
@@ -21,8 +22,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppPallete.whiteColor : AppPallete.backgroundColor;
 
+    // Determine the leading widget
+    final Widget effectiveLeading = leading ??
+        IconButton(
+          icon: Icon(Icons.menu_rounded, color: textColor),
+          onPressed: () => showSettingsMenu(context),
+        );
+
+    // Build the actions list
     final List<Widget> effectiveActions = [
       ...?actions, // Add existing actions if any
+      if (leading != null) // If a custom leading is provided, add settings to actions
+        IconButton(
+          icon: Icon(Icons.menu_rounded, color: textColor),
+          onPressed: () => showSettingsMenu(context),
+        ),
       if (!hideAssistantIcon) // Conditionally add the AI assistant icon
         IconButton(
           icon: Icon(
@@ -58,7 +72,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           letterSpacing: -0.5,
         ),
       ),
-      leading: leading,
+      leading: effectiveLeading,
       actions: effectiveActions,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Use scaffold background color
       elevation: 0, // Remove shadow

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // Needed for AppUserCubit if logout is implemented
+import 'package:blog_app/core/cubits/app_user/app_user_cubit.dart'; // Needed for AppUserCubit if logout is implemented
 import 'package:blog_app/theme/app_pallete.dart';
 import 'package:blog_app/theme/theme.dart';
 
@@ -33,10 +35,27 @@ void showSettingsMenu(BuildContext context) {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.watch_rounded, color: AppPallete.primaryColor),
+              title: const Text('Manage Wearable Devices'),
+              onTap: () {
+                // Implement manage wearable devices logic here
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.switch_account_rounded, color: AppPallete.primaryColor),
+              title: const Text('Switch Accounts'),
+              onTap: () {
+                // Implement switch accounts logic here
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
               title: const Text('Logout'),
               onTap: () {
                 // Implement logout logic here
+                // Example: context.read<AppUserCubit>().userSignedOut();
                 Navigator.pop(context);
               },
             ),
