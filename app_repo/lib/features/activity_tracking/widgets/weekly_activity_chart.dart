@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:blog_app/core/theme/app_pallete.dart';
+import 'package:blog_app/theme/app_pallete.dart';
 import 'dart:math' as math;
 
 class WeeklyActivityChart extends StatelessWidget {

@@ -12,8 +12,8 @@ import 'package:blog_app/features/auth/domain/auth_repository.dart';
 import 'package:blog_app/features/auth/domain/auth_usecases.dart';
 import 'package:blog_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:blog_app/features/posts/data/datasources/blog_local_data_source.dart';
-import 'package:blog_app/features/posts/data/datasources/blog_remote_data_source.dart';
-import 'package:blog_app/features/posts/data/datasources/blog_repository_impl.dart';
+import 'package:blog_app/features/posts/data/datasources/post_remote_data_source.dart';
+import 'package:blog_app/features/posts/data/datasources/post_repository_impl.dart';
 import 'package:blog_app/features/posts/domain/post_repository.dart';
 import 'package:blog_app/features/posts/domain/post_usecases.dart';
 import 'package:blog_app/features/posts/presentation/bloc/blog_bloc.dart';
@@ -21,6 +21,7 @@ import 'package:blog_app/features/activity_tracking/data/activity_local_data_sou
 import 'package:blog_app/features/activity_tracking/data/activity_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart'; // Import hive_flutter
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -47,20 +48,18 @@ Future<void> initDependencies() async {
   // 2. Initialize Hive
   try {
     debugPrint('Initializing Hive...');
-    final appDir = await getApplicationDocumentsDirectory();
-    Hive.defaultDirectory = appDir.path;
+    await Hive.initFlutter(); // Initialize Hive Flutter
+    // Hive.defaultDirectory = appDir.path; // Removed: Hive.initFlutter handles this
     
-    final blogsBox = Hive.box(name: 'blogs');
-    final activityBox = Hive.box(name: 'activity');
+    final blogsBox = await Hive.openBox('blogs');
+    final activityBox = await Hive.openBox('activity');
 
     serviceLocator.registerLazySingleton<Box>(() => blogsBox, instanceName: 'blogsBox');
     serviceLocator.registerLazySingleton<Box>(() => activityBox, instanceName: 'activityBox');
     debugPrint('Hive initialized.');
   } catch (e) {
     debugPrint('Hive init failed: $e');
-    // Register fallbacks
-    serviceLocator.registerLazySingleton<Box>(() => Hive.box(name: 'blogs'), instanceName: 'blogsBox');
-    serviceLocator.registerLazySingleton<Box>(() => Hive.box(name: 'activity'), instanceName: 'activityBox');
+    rethrow;
   }
 
   // 3. Register Core Features

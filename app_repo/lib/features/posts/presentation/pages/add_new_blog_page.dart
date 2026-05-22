@@ -61,7 +61,7 @@ class _AddNewBlogPageState extends State<AddNewBlogPage> {
       }
 
       context.read<PostsBloc>().add(
-            PostUpload(
+            PostsUploadPost(
               posterId: posterId,
               title: titleController.text.trim(),
               content: contentController.text.trim(),
@@ -87,7 +87,7 @@ class _AddNewBlogPageState extends State<AddNewBlogPage> {
         title: 'Add New Blog',
         actions: [
           IconButton(
-            onPressed: uploadBlog,
+            onPressed: uploadBlog, // Corrected from PostUpload
             icon: const Icon(Icons.done_rounded),
           ),
         ],
@@ -97,7 +97,7 @@ class _AddNewBlogPageState extends State<AddNewBlogPage> {
         listener: (context, state) {
           if (state is PostsFailure) {
             showSnackBar(context, state.message);
-          } else if (state is PostUploadSuccess) {
+          } else if (state is PostsUploadSuccess) { // Corrected from PostUploadSuccess
             Navigator.pop(context);
           }
         },

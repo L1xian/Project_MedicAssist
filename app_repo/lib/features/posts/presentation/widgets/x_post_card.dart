@@ -1,20 +1,36 @@
 import 'package:blog_app/features/posts/domain/post.dart'; 
 import 'package:blog_app/theme/app_pallete.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:flutter/material.dart';
 import 'package:blog_app/core/utils/format_date.dart'; // Assuming you have this utility
+import 'package:blog_app/features/posts/presentation/widgets/comment_section.dart';
+import 'package:blog_app/features/posts/presentation/bloc/blog_bloc.dart';
+
 
 class XPostCard extends StatelessWidget {
   final Post blog; // Changed type from Blog to Post
+  final VoidCallback? onBookAppointment; // New parameter
 
   const XPostCard({
-    super.key,
+    super.key, // Added key parameter
     required this.blog,
+    this.onBookAppointment, // Make it optional
   });
+
+  void _showComments(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CommentSection(blog: blog),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color textColor = isDark ? AppPallete.whiteColor : AppPallete.backgroundColor;
+    final Color textColor = isDark ? AppPallete.whiteColor : Colors.black87;
     final Color mutedColor = isDark ? AppPallete.greyColor : (Colors.grey[600] ?? Colors.black); // Ensure mutedColor is non-nullable
 
     // Placeholder for avatar - ideally, this would come from the user data
@@ -46,20 +62,15 @@ class XPostCard extends StatelessWidget {
                   // User Info (Name, Handle, Time)
                   Row(
                     children: [
-                      Text(
-                        blog.posterName ?? 'Unknown User', // Handle null posterName
+                      Flexible(
+                        child: Text(
+                          blog.posterName ?? 'Unknown User',
+                          overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: textColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '@${(blog.posterName ?? 'unknown').toLowerCase().replaceAll(' ', '')}', // Handle null posterName
-                        style: TextStyle(
-                          color: mutedColor,
-                          fontSize: 14,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -106,12 +117,61 @@ class XPostCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildActionButton(Icons.chat_bubble_outline, '12', mutedColor),
-                      _buildActionButton(Icons.repeat, '5', mutedColor),
-                      _buildActionButton(Icons.favorite_border, '23', mutedColor),
+                      _buildActionButton(
+                        Icons.chat_bubble_outline,
+                        '12',
+                        mutedColor,
+                        onTap: () => _showComments(context),
+                      ),
+                      _buildActionButton(Icons.repeat, '5', mutedColor), // Repost/Retweet (Placeholder)
+                      _buildActionButton(
+                        Icons.favorite_border,
+                        '23',
+                        mutedColor,
+                        onTap: () => context.read<PostsBloc>().add(
+                              PostsToggleLike(
+                                postId: blog.posterId,
+                                isCurrentlyLiked: false,
+                              ),
+                            ),
+                      ), // Like (dispatch)
+                      _buildActionButton(
+                        Icons.bookmark_border,
+                        '',
+                        mutedColor,
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Saved "${blog.title}" to your bookmarks'),
+                            ),
+                          );
+                        },
+                      ), // Bookmark (local UI)
+
                       _buildActionButton(Icons.share, '', mutedColor),
                     ],
                   ),
+                  if (onBookAppointment != null) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: onBookAppointment,
+                        icon: const Icon(Icons.calendar_today, color: Colors.white),
+                        label: const Text(
+                          'Book Appointment',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppPallete.primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -121,15 +181,22 @@ class XPostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String count, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: color),
-        if (count.isNotEmpty) ...[
-          const SizedBox(width: 4),
-          Text(count, style: TextStyle(color: color, fontSize: 13)),
-        ],
-      ],
+  Widget _buildActionButton(IconData icon, String count, Color color, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: color),
+            if (count.isNotEmpty) ...[
+              const SizedBox(width: 4),
+              Text(count, style: TextStyle(color: color, fontSize: 13)),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

@@ -29,6 +29,7 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
   List<Post> _allFetchedPosts = [];
   String _authorFilter = 'Anyone'; // Default to 'Anyone'
   String _locationFilter = 'Anywhere'; // Default to 'Anywhere'
+  bool _showBookmarksOnly = false;
 
   // Animation for FAB
   late AnimationController _fabAnimationController;
@@ -109,9 +110,61 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
           matchesLocationFilter = post.topics.any((t) => t.toLowerCase() == 'local');
         }
 
-        return matchesSearch && matchesCategory && matchesAuthorFilter && matchesLocationFilter;
+        // Apply Bookmark Filter (Mock logic: assume even hashcodes are bookmarked)
+        bool matchesBookmarkFilter = !_showBookmarksOnly || post.id.hashCode % 2 == 0;
+
+        return matchesSearch && matchesCategory && matchesAuthorFilter && 
+               matchesLocationFilter && matchesBookmarkFilter;
       }).toList();
     });
+  }
+
+  void _injectMockPostsAndFilter() {
+    if (_allFetchedPosts.isEmpty) {
+      _allFetchedPosts = [
+        Post(
+          id: '1',
+          posterId: 'user1',
+          posterName: 'Dr. Alice Smith',
+          title: 'Healthy Eating Habits',
+          content: 'Maintaining a balanced diet is essential for long-term health. Focus on whole foods, lean proteins, and plenty of greens.',
+          imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1000&auto=format&fit=crop',
+          topics: ['Diet', 'Trending Health'],
+          updatedAt: DateTime.now(),
+        ),
+        Post(
+          id: '2',
+          posterId: 'user2',
+          posterName: 'Fitness Pro',
+          title: 'Daily Exercise Routine',
+          content: 'Just 30 minutes of moderate activity each day can significantly improve your cardiovascular health and mood. Consistency is key!',
+          imageUrl: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1000&auto=format&fit=crop',
+          topics: ['For you', 'Trending Health'],
+          updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
+        ),
+        Post(
+          id: '3',
+          posterId: 'user3',
+          posterName: 'Local Health Clinic',
+          title: 'Community Health Awareness',
+          content: 'Join us this weekend for a free health screening event at the community center. Everyone is welcome to join and learn about local resources.',
+          imageUrl: '',
+          topics: ['Medicines', 'local'],
+          updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+        ),
+        Post(
+          id: '4',
+          posterId: 'user4',
+          posterName: 'Nutritionist Mike',
+          title: 'Superfoods for Immunity',
+          content: 'Berries, nuts, and citrus fruits are packed with antioxidants that help boost your immune system naturally.',
+          imageUrl: 'https://images.unsplash.com/photo-1494390248081-4e521a5940db?q=80&w=1000&auto=format&fit=crop',
+          topics: ['Diet', 'For you'],
+          updatedAt: DateTime.now().subtract(const Duration(days: 2)),
+        ),
+      ];
+    }
+    _applyFilters();
   }
 
   void _toggleFab() {
@@ -122,69 +175,10 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
     }
   }
 
-  Widget _buildRadio(String label, String val, String group, StateSetter setModalState, bool isAuthor) {
-    return RadioListTile<String>(
-      title: Text(label, style: const TextStyle(fontSize: 15)),
-      dense: true,
-      visualDensity: const VisualDensity(horizontal: 0, vertical: -3),
-      value: val,
-      groupValue: group,
-      activeColor: AppPallete.primaryColor,
-      onChanged: (v) {
-        setModalState(() {
-          if (isAuthor) {
-            _authorFilter = v!;
-          } else {
-            _locationFilter = v!;
-          }
-          _applyFilters(); // Re-apply filters immediately
-        });
-        Navigator.pop(context); // Close the modal after selection
-      },
-    );
-  }
-
-  void _showSettingsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final textColor = Theme.of(context).brightness == Brightness.dark ? AppPallete.whiteColor : AppPallete.backgroundColor;
-
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 10, 0, 15),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _sectionHeader('Content Settings', textColor, 18),
-                  _sectionHeader('Show posts from:', textColor, 14),
-                  _buildRadio('Anyone', 'Anyone', _authorFilter, setModalState, true),
-                  _buildRadio('People you follow', 'Followed', _authorFilter, setModalState, true),
-                  const Divider(height: 10),
-                  _sectionHeader('Location:', textColor, 14),
-                  _buildRadio('Anywhere', 'Anywhere', _locationFilter, setModalState, false),
-                  _buildRadio('Nearby', 'Nearby', _locationFilter, setModalState, false),
-                ],
-              ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _sectionHeader(String text, Color color, double size) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-        child: Text(text, style: TextStyle(fontSize: size, fontWeight: FontWeight.bold, color: color)),
-      );
+  // Removed _showBookingDialog as it was part of the changes to be undone.
+  // Removed _buildRadio as it was part of the changes to be undone.
+  // Removed _showSettingsMenu as it was part of the changes to be undone.
+  // Removed _sectionHeader as it was part of the changes to be undone.
 
   @override
   Widget build(BuildContext context) {
@@ -195,13 +189,13 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'Posts',
-        leading: IconButton(
-          icon: Icon(Icons.menu_rounded, color: textColor),
-          onPressed: () {
-            // Handle menu button press, e.g., open a drawer
-          },
-        ),
-        actions: const [],
+        actions: [
+          // Reverted to original state, removing settings icon
+          // IconButton(
+          //   onPressed: () => _showSettingsMenu(context),
+          //   icon: Icon(Icons.settings_outlined, color: textColor),
+          // ),
+        ],
       ),
       body: Column(
         children: [
@@ -235,16 +229,24 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
                     style: TextStyle(color: textColor),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Container(
-                  height: 48,
+                  height: 32,
                   width: 1,
                   color: AppPallete.borderColor.withOpacity(0.5),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 IconButton(
-                  onPressed: () => _showSettingsMenu(context),
-                  icon: Icon(Icons.settings_outlined, color: textColor),
+                  onPressed: () {
+                    setState(() {
+                      _showBookmarksOnly = !_showBookmarksOnly;
+                      _applyFilters();
+                    });
+                  },
+                  icon: Icon(
+                    _showBookmarksOnly ? Icons.bookmark : Icons.bookmark_border,
+                    color: _showBookmarksOnly ? AppPallete.primaryColor : textColor,
+                  ),
                 ),
               ],
             ),
@@ -271,9 +273,11 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
               listener: (context, state) {
                 if (state is PostsFailure) {
                   showSnackBar(context, state.message);
+                  _allFetchedPosts = []; // Clear to ensure mocks are injected
+                  _injectMockPostsAndFilter();
                 } else if (state is PostsDisplaySuccess) {
                   _allFetchedPosts = state.posts;
-                  _applyFilters();
+                  _injectMockPostsAndFilter();
                 }
               },
               builder: (context, state) {
@@ -293,12 +297,15 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
                           color: AppPallete.borderColor.withOpacity(0.3),
                           height: 1,
                           thickness: 0.5,
-                          indent: 16,
-                          endIndent: 16,
+                          indent: 0,
+                          endIndent: 0,
                         ),
                         itemBuilder: (context, index) {
                           final post = _displayPosts[index];
-                          return XPostCard(blog: post);
+                          return XPostCard(
+                            blog: post,
+                            // Removed onBookAppointment as it was part of the changes to be undone.
+                          );
                         },
                       );
               },

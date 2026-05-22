@@ -9,6 +9,7 @@ abstract interface class PostRepository {
     required String title,
     required String content,
     required String posterId,
+    required String posterName, // Added posterName
     required List<String> topics,
   });
 

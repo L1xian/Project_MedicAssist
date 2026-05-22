@@ -2,21 +2,21 @@ import 'dart:io';
 import 'package:blog_app/core/constants/constants.dart';
 import 'package:blog_app/core/constants/errors.dart';
 import 'package:blog_app/core/constants/connection_checker.dart';
-import 'package:blog_app/features/posts/data/datasources/post_local_data_source.dart'; // Changed import
-import 'package:blog_app/features/posts/data/datasources/post_remote_data_source.dart'; // Changed import
+import 'package:blog_app/features/posts/data/datasources/blog_local_data_source.dart';
+import 'package:blog_app/features/posts/data/datasources/post_remote_data_source.dart';
 import 'package:blog_app/features/posts/domain/post.dart';
 import 'package:blog_app/features/posts/domain/post_repository.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:uuid/uuid.dart';
 
-class PostRepositoryImpl implements PostRepository { // Renamed BlogRepositoryImpl to PostRepositoryImpl
-  final PostRemoteDataSource postRemoteDataSource; // Renamed blogRemoteDataSource to postRemoteDataSource
-  final PostLocalDataSource postLocalDataSource; // Renamed blogLocalDataSource to postLocalDataSource
+class PostRepositoryImpl implements PostRepository {
+  final PostRemoteDataSource postRemoteDataSource;
+  final PostLocalDataSource postLocalDataSource;
   final ConnectionChecker connectionChecker;
 
-  PostRepositoryImpl( // Renamed BlogRepositoryImpl to PostRepositoryImpl
-    this.postRemoteDataSource, // Renamed blogRemoteDataSource to postRemoteDataSource
-    this.postLocalDataSource, // Renamed blogLocalDataSource to postLocalDataSource
+  PostRepositoryImpl(
+    this.postRemoteDataSource,
+    this.postLocalDataSource,
     this.connectionChecker,
   );
 
@@ -26,6 +26,7 @@ class PostRepositoryImpl implements PostRepository { // Renamed BlogRepositoryIm
     required String title,
     required String content,
     required String posterId,
+    required String posterName, // Added posterName
     required List<String> topics,
   }) async {
     try {
@@ -35,6 +36,7 @@ class PostRepositoryImpl implements PostRepository { // Renamed BlogRepositoryIm
       Post post = Post(
         id: const Uuid().v1(),
         posterId: posterId,
+        posterName: posterName, // Added posterName
         title: title,
         content: content,
         imageUrl: '',
@@ -43,17 +45,19 @@ class PostRepositoryImpl implements PostRepository { // Renamed BlogRepositoryIm
       );
 
       if (image != null) {
-        final imageUrl = await postRemoteDataSource.uploadPostImage( // Renamed blogRemoteDataSource to postRemoteDataSource
+        final imageUrl = await postRemoteDataSource.uploadPostImage(
           image: image,
           post: post,
         );
         post = post.copyWith(imageUrl: imageUrl);
       }
 
-      final uploadedPost = await postRemoteDataSource.uploadPost(post); // Renamed blogRemoteDataSource to postRemoteDataSource
+      final uploadedPost = await postRemoteDataSource.uploadPost(post);
       return right(uploadedPost);
     } on ServerException catch (e) {
       return left(Failure(e.message));
+    } catch (e) {
+      return left(Failure(e.toString()));
     }
   }
 
@@ -61,13 +65,15 @@ class PostRepositoryImpl implements PostRepository { // Renamed BlogRepositoryIm
   Future<Either<Failure, List<Post>>> getAllPosts() async {
     try {
       if (!await (connectionChecker.isConnected)) {
-        return right(postLocalDataSource.loadPosts()); // Renamed blogLocalDataSource to postLocalDataSource
+        return right(await postLocalDataSource.loadPosts());
       }
-      final posts = await postRemoteDataSource.getAllPosts(); // Renamed blogs to posts, blogRemoteDataSource to postRemoteDataSource
-      postLocalDataSource.uploadLocalPosts(posts: posts); // Renamed blogLocalDataSource to postLocalDataSource, blogs to posts
-      return right(posts); // Renamed blogs to posts
+      final posts = await postRemoteDataSource.getAllPosts();
+      await postLocalDataSource.uploadLocalPosts(posts: posts);
+      return right(posts);
     } on ServerException catch (e) {
       return left(Failure(e.message));
+    } catch (e) {
+      return left(Failure(e.toString()));
     }
   }
 }

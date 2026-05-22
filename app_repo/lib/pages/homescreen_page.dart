@@ -51,6 +51,8 @@ class _NavigationBarState extends State<_NavigationBar> {
     ];
   }
 
+  // _showSettingsMenu method removed from here
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -120,12 +122,12 @@ class ActivityDashboard extends StatelessWidget {
     final textColor = isDark ? AppPallete.whiteColor : AppPallete.backgroundColor;
 
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         title: 'MedicAssist',
         // Removed leading IconButton as CustomAppBar now provides the settings menu
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Center(
+      body: Center( // Re-wrap original body content in Center
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
           child: Padding(
@@ -304,7 +306,7 @@ class _MetricTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center, // Align items vertically in the center
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(icon, size: 24, color: AppPallete.primaryColor),
               const SizedBox(width: 12),
@@ -319,6 +321,7 @@ class _MetricTile extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [

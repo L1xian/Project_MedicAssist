@@ -1,31 +1,20 @@
 import 'package:flutter/material.dart';
 
 class AppPallete {
-  // Brand Colors
-  static const Color primaryColor = Color(0xFF2850C6);
-  static const Color secondaryColor = Color(0xFF0E22E8);
-
-  // Background & Surface Colors
-  static const Color lightBlueWhite = Color(0xFFF0F5FF);
-  static const Color backgroundColor = Color(0xFF121212); // Primary dark background
-  static const Color surfaceColor = Color(0xFF1E1E1E);    // Dark surface (cards/sheets)
-  static const Color whiteColor = Color(0xFFFFFFFF);
-
-  // UI Element Colors
-  static const Color borderColor = Color(0xFFE0E0E0);
+  static const Color backgroundColor = Color.fromRGBO(24, 24, 24, 1);
+  static const Color gradient1 = Color.fromRGBO(118, 66, 238, 1);
+  static const Color gradient2 = Color.fromRGBO(255, 128, 140, 1);
+  static const Color gradient3 = Color.fromRGBO(255, 159, 124, 1);
+  static const Color borderColor = Color.fromRGBO(52, 52, 52, 1);
+  static const Color whiteColor = Colors.white;
+  static const Color greyColor = Colors.grey;
   static const Color errorColor = Colors.redAccent;
-  static const Color transparentColor = Color(0x00000000);
-  static const Color greyColor = Color(0xFF9E9E9E);
+  static const Color transparentColor = Colors.transparent;
+  static const Color lightBlueWhite = Color.fromRGBO(240, 242, 245, 1);
+  // Accent colors (match web_repo theme)
+  static const Color primaryColor = Colors.blueAccent; // Light accent
+  static const Color darkPrimaryColor = Color(0xFF1976D2); // Dark accent
 
-  // Compatibility aliases (if needed by older code)
-  static const Color darkBackgroundColor = backgroundColor;
-  static const Color darkTextColor = whiteColor;
-  static const Color darkBorderColor = Color(0xFF333333);
-  static const Color darkGreyColor = greyColor;
-  static const Color lightBackgroundColor = whiteColor;
-  static const Color lightTextColor = backgroundColor;
-  static const Color lightBorderColor = borderColor;
-  static const Color lightGreyColor = greyColor;
-  static const Color gradient1 = primaryColor;
-  static const Color gradient2 = secondaryColor;
+  static const Color surfaceColor = Color.fromRGBO(36, 36, 36, 1);
+  static const Color secondaryColor = Color.fromRGBO(33, 150, 243, 1);
 }
