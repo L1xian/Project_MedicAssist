@@ -113,43 +113,103 @@ class XPostCard extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: 12),
-                  // Action Buttons (Placeholder)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildActionButton(
-                        Icons.chat_bubble_outline,
-                        '12',
-                        mutedColor,
-                        onTap: () => _showComments(context),
-                      ),
-                      _buildActionButton(Icons.repeat, '5', mutedColor), // Repost/Retweet (Placeholder)
-                      _buildActionButton(
-                        Icons.favorite_border,
-                        '23',
-                        mutedColor,
-                        onTap: () => context.read<PostsBloc>().add(
-                              PostsToggleLike(
-                                postId: blog.posterId,
-                                isCurrentlyLiked: false,
-                              ),
-                            ),
-                      ), // Like (dispatch)
-                      _buildActionButton(
-                        Icons.bookmark_border,
-                        '',
-                        mutedColor,
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Saved "${blog.title}" to your bookmarks'),
-                            ),
-                          );
-                        },
-                      ), // Bookmark (local UI)
+                  // Status indicator (used for Pending/Denied mock posts)
+                  Builder(
+                    builder: (context) {
+                      final String? status = blog.topics
+                          .map((t) => t.toLowerCase())
+                          .contains('pending')
+                          ? 'pending'
+                          : (blog.topics
+                                  .map((t) => t.toLowerCase())
+                                  .contains('denied')
+                              ? 'denied'
+                              : null);
 
-                      _buildActionButton(Icons.share, '', mutedColor),
-                    ],
+                      if (status != null) {
+                        return Column(
+                          children: [
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Icon(
+                                  status == 'pending'
+                                      ? Icons.hourglass_empty
+                                      : Icons.cancel,
+                                  color: status == 'pending'
+                                      ? Colors.orange
+                                      : Colors.red,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  status == 'pending' ? 'Pending' : 'Denied',
+                                  style: TextStyle(
+                                    color: status == 'pending'
+                                        ? Colors.orange
+                                        : Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      }
+
+                      // Default: Action Buttons (Placeholder)
+                      return const SizedBox.shrink();
+                    },
+                  ),
+
+
+                  // Hide replies/shares/bookmark icons for Pending/Denied posts
+                  Builder(
+                    builder: (context) {
+                      final lowerTopics = blog.topics.map((t) => t.toLowerCase()).toList();
+                      final bool isPending = lowerTopics.contains('pending');
+                      final bool isDenied = lowerTopics.contains('denied');
+
+                      if (isPending || isDenied) return const SizedBox.shrink();
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildActionButton(
+                            Icons.chat_bubble_outline,
+                            '12',
+                            mutedColor,
+                            onTap: () => _showComments(context),
+                          ),
+                          _buildActionButton(Icons.repeat, '5', mutedColor), // Repost/Retweet (Placeholder)
+                          _buildActionButton(
+                            Icons.favorite_border,
+                            '23',
+                            mutedColor,
+                            onTap: () => context.read<PostsBloc>().add(
+                                  PostsToggleLike(
+                                    postId: blog.posterId,
+                                    isCurrentlyLiked: false,
+                                  ),
+                                ),
+                          ), // Like (dispatch)
+                          _buildActionButton(
+                            Icons.bookmark_border,
+                            '',
+                            mutedColor,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Saved "${blog.title}" to your bookmarks'),
+                                ),
+                              );
+                            },
+                          ), // Bookmark (local UI)
+
+                          _buildActionButton(Icons.share, '', mutedColor),
+                        ],
+                      );
+                    },
                   ),
                   if (onBookAppointment != null) ...[
                     const SizedBox(height: 12),

@@ -24,7 +24,7 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
   String? _selectedCategory;
-  final List<String> _categories = ['For you', 'Trending Health', 'Diet', 'Medicines'];
+  final List<String> _categories = ['Pending', 'For you', 'Trending Health', 'Diet', 'Medicines'];
   List<Post> _displayPosts = [];
   List<Post> _allFetchedPosts = [];
   String _authorFilter = 'Anyone'; // Default to 'Anyone'
@@ -39,7 +39,9 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _categories.length, vsync: this);
+    // Default tab should be "For you"
+    _tabController = TabController(length: _categories.length, vsync: this, initialIndex: _categories.indexOf('For you'));
+
     _tabController.addListener(_handleTabSelection);
     _selectedCategory = _categories[_tabController.index];
     context.read<PostsBloc>().add(PostsFetchAllPosts());
@@ -92,9 +94,15 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
             post.content.toLowerCase().contains(query) ||
             post.topics.any((t) => t.toLowerCase().contains(query));
 
-        final matchesCategory = _selectedCategory == 'For you' ||
+        final matchesCategory =
             _selectedCategory == null ||
-            post.topics.any((t) => t.toLowerCase() == _selectedCategory!.toLowerCase());
+            (_selectedCategory == 'For you') ||
+            (_selectedCategory == 'Pending' &&
+                (post.topics.any((t) => t.toLowerCase() == 'pending') ||
+                    post.topics.any((t) => t.toLowerCase() == 'denied'))) ||
+            (_selectedCategory != 'For you' &&
+                _selectedCategory != 'Pending' &&
+                post.topics.any((t) => t.toLowerCase() == _selectedCategory!.toLowerCase()));
 
         // Apply Author Filter
         bool matchesAuthorFilter = true;
@@ -141,6 +149,39 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
           imageUrl: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1000&auto=format&fit=crop',
           topics: ['For you', 'Trending Health'],
           updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
+        ),
+        // Mock pending post (for the Pending tab)
+        Post(
+          id: '5',
+          posterId: 'user5',
+          posterName: 'John Pending',
+          title: 'Pending: Vitamin D Awareness',
+          content: 'This post is currently pending approval. Share your experience with vitamin D and safe supplementation practices.',
+          imageUrl: '',
+          topics: ['Pending'],
+          updatedAt: DateTime.now().subtract(const Duration(hours: 5)),
+        ),
+        // Mock denied post (will not appear in Pending tab, but can be shown elsewhere later)
+        Post(
+          id: '6',
+          posterId: 'user6',
+          posterName: 'Sarah Denied',
+          title: 'Denied: Unverified Medical Claim',
+          content: 'This post was denied due to unverified information. (Mock data only)',
+          imageUrl: '',
+          topics: ['Denied'],
+          updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+        ),
+        // Mock denied post (2)
+        Post(
+          id: '7',
+          posterId: 'user7',
+          posterName: 'Adam Denied',
+          title: 'Denied: Incorrect Dosage Advice',
+          content: 'This post was denied because the dosage advice is not verified. (Mock data only)',
+          imageUrl: '',
+          topics: ['Denied'],
+          updatedAt: DateTime.now().subtract(const Duration(days: 3)),
         ),
         Post(
           id: '3',
